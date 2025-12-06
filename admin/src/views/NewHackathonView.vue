@@ -1,0 +1,213 @@
+<template>
+  <div class="new-hackathon-page">
+    <a-page-header
+        title="Создание хакатона"
+        sub-title="Заполните информацию о новом хакатоне"
+        @back="$router.push('/')"
+    >
+      <template #extra>
+        <a-space>
+          <a-button @click="$router.push('/')">Отмена</a-button>
+          <a-button
+              type="primary"
+              @click="handleSubmit"
+              :loading="submitting"
+          >
+            Создать хакатон
+          </a-button>
+        </a-space>
+      </template>
+    </a-page-header>
+
+    <a-card style="margin-top: 24px">
+      <a-form
+          ref="formRef"
+          :model="form"
+          :rules="rules"
+          layout="vertical"
+          @finish="handleSubmit"
+      >
+        <a-row :gutter="24">
+          <a-col :span="16">
+            <a-form-item label="Название хакатона" name="name" required>
+              <a-input
+                  v-model:value="form.name"
+                  placeholder="Например: ITAM AI Hack 2024"
+                  size="large"
+              />
+            </a-form-item>
+
+            <a-form-item label="Описание" name="description" required>
+              <a-textarea
+                  v-model:value="form.description"
+                  placeholder="Опишите цели, тематику и особенности хакатона..."
+                  :rows="4"
+                  show-count
+                  :maxlength="500"
+              />
+            </a-form-item>
+
+
+            <a-form-item label="Даты проведения" name="dates" required>
+              <a-range-picker
+                  v-model:value="form.dates"
+                  :show-time="{ format: 'HH:mm' }"
+                  format="DD.MM.YYYY HH:mm"
+                  style="width: 100%"
+                  :disabled-date="disabledDate"
+              />
+            </a-form-item>
+
+
+            <a-form-item label="Место проведения" name="location">
+              <a-select
+                  v-model:value="form.location"
+                  placeholder="Выберите тип"
+                  style="width: 100%"
+              >
+                <a-select-option value="online">Онлайн</a-select-option>
+                <a-select-option value="offline">Оффлайн</a-select-option>
+                <a-select-option value="hybrid">Гибрид</a-select-option>
+              </a-select>
+            </a-form-item>
+
+
+            <a-form-item
+                v-if="form.location === 'offline' || form.location === 'hybrid'"
+                label="Адрес"
+                name="address"
+            >
+              <a-input
+                  v-model:value="form.address"
+                  placeholder="Укажите адрес проведения"
+              />
+            </a-form-item>
+
+
+            <a-form-item label="Призовой фонд" name="prize">
+              <a-input
+                  v-model:value="form.prize"
+                  placeholder="Например: 500 000 ₽ или MacBook Pro"
+                  :maxlength="100"
+              />
+            </a-form-item>
+
+
+            <a-form-item label="Треки (направления)" name="tracks" required>
+              <a-select
+                  v-model:value="form.tracks"
+                  mode="tags"
+                  placeholder="Добавьте треки, например: AI/ML, Web3, Mobile"
+                  style="width: 100%"
+                  :options="trackOptions"
+              />
+            </a-form-item>
+          </a-col>
+
+          <a-col :span="8">
+            <a-card title="Настройки" size="small">
+              <a-form-item label="Макс. размер команды" name="maxTeamSize">
+                <a-input-number
+                    v-model:value="form.maxTeamSize"
+                    :min="2"
+                    :max="10"
+                    style="width: 100%"
+                />
+              </a-form-item>
+
+              <a-form-item label="Логотип (URL)" name="image">
+                <a-input
+                    v-model:value="form.image"
+                    placeholder="Ссылка на изображение"
+                />
+                <div style="margin-top: 8px">
+                  <img
+                      v-if="form.image"
+                      :src="form.image"
+                      alt="Preview"
+                      style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px"
+                  />
+                </div>
+              </a-form-item>
+
+              <a-form-item label="Статус" name="status">
+                <a-select v-model:value="form.status" style="width: 100%">
+                  <a-select-option value="upcoming">Предстоящий</a-select-option>
+                  <a-select-option value="active">Активный</a-select-option>
+                  <a-select-option value="draft">Черновик</a-select-option>
+                </a-select>
+              </a-form-item>
+            </a-card>
+          </a-col>
+        </a-row>
+      </a-form>
+    </a-card>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { message } from 'ant-design-vue'
+import { useHackathonsStore } from '../stores/hackathons'
+import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
+
+const router = useRouter()
+const hackathonsStore = useHackathonsStore()
+const formRef = ref()
+const submitting = ref(false)
+
+const form = reactive({
+  name: '',
+  description: '',
+  dates: [] as Dayjs[],
+  tracks: [] as string[],
+  maxTeamSize: 5,
+  image: '',
+  status: 'upcoming' as 'upcoming' | 'active' | 'finished' | 'draft',
+  participants: 0,
+  teams: 0,
+  location: 'online' as 'online' | 'offline' | 'hybrid',
+  address: '',
+  prize: ''
+})
+
+const handleSubmit = async () => {
+  try {
+    await formRef.value.validate()
+
+    submitting.value = true
+
+
+    const newHackathon = hackathonsStore.addHackathon({
+      name: form.name,
+      description: form.description,
+      image: form.image,
+      status: form.status,
+      startDate: form.dates[0].toISOString(),
+      endDate: form.dates[1].toISOString(),
+      tracks: form.tracks,
+      maxTeamSize: form.maxTeamSize,
+      location: form.location,
+      address: form.address,
+      prize: form.prize
+    })
+
+    message.success(`Хакатон "${newHackathon.name}" успешно создан!`)
+    router.push('/')
+
+  } catch (error) {
+    console.error('Ошибка:', error)
+    message.error('Ошибка при создании хакатона')
+  } finally {
+    submitting.value = false
+  }
+}
+</script>
+
+<style scoped>
+.new-hackathon-page {
+  padding: 24px;
+}
+</style>

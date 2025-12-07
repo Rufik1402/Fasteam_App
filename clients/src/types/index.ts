@@ -57,3 +57,18 @@ export interface HackathonFilters {
 }
 
 export type RegistrationFormData = Omit<HackathonRegistration, 'registeredAt'>;
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  role: string;
+}
+
+export interface Team {
+  id: number;
+  name: string;
+  hackathon: string;
+  members: TeamMember[];
+  maxMembers?: number;
+  vacancies?: string[];
+}

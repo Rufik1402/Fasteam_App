@@ -1,31 +1,61 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useUserStore } from '../../../store/userStore';
-import { useHackathonStore } from '../../../store/hackathonStore';
-import { fakeHackathons } from '../../../data/mockData';
-import { Link } from 'react-router-dom';
-import type { HackathonRegistration, Hackathon } from '../../../types/index';
-import styles from './ProfilePage.module.css';
-import CalendarIcon from '../../../assets/icons/calendar.svg';
-import LocationIcon from '../../../assets/icons/Place.svg';
+import { useEffect, useState, useCallback } from "react";
+import { useUserStore } from "../../../store/userStore";
+import { useHackathonStore } from "../../../store/hackathonStore";
+import { fakeHackathons } from "../../../data/mockData";
+import { Link } from "react-router-dom";
+import type { HackathonRegistration, Hackathon } from "../../../types/index";
+import TeamCard from "../../features/TeamCard/TeamCard";
+import styles from "./ProfilePage.module.css";
+import CalendarIcon from "../../../assets/icons/calendar.svg";
+import LocationIcon from "../../../assets/icons/Place.svg";
+import AddingIcon from "../../../assets/icons/Add.svg";
 
 const ProfilePage = () => {
   const { currentUser } = useUserStore();
   const { getUserRegistrations } = useHackathonStore();
-  
-  const [userHackathons, setUserHackathons] = useState<HackathonRegistration[]>([]);
+
+  const [userHackathons, setUserHackathons] = useState<HackathonRegistration[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
-  
+  const [isTeamsOpen, setIsTeamsOpen] = useState(false);
+
+  const myTeams = [
+    {
+      id: 1,
+      name: "Dream Team",
+      hackathon: "Яндекс Хакатон 2024",
+      members: [
+        { id: 1, name: "Алексей Иванов", role: "Фронтенд" },
+        { id: 2, name: "Мария Петрова", role: "Дизайнер" },
+        { id: 3, name: "Иван Сидоров", role: "Бэкенд" },
+      ],
+      maxMembers: 5,
+      vacancies: ["Designer", "QA"],
+    },
+    {
+      id: 2,
+      name: "Code Masters",
+      hackathon: "AI Challenge 2024",
+      members: [
+        { id: 1, name: "Дмитрий Козлов", role: "ML инженер" },
+        { id: 2, name: "Екатерина Смирнова", role: "Аналитик" },
+      ],
+      maxMembers: 4,
+      vacancies: [],
+    },
+  ];
+
   const loadUserData = useCallback(async () => {
     if (!currentUser?.id) return;
-    
+
     try {
       setLoading(true);
 
       const registrations = getUserRegistrations(currentUser.id);
       setUserHackathons(registrations);
-      
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error("Error loading user data:", error);
     } finally {
       setLoading(false);
     }
@@ -34,8 +64,6 @@ const ProfilePage = () => {
   useEffect(() => {
     loadUserData();
   }, [loadUserData]);
-
-
 
   if (!currentUser) {
     return (
@@ -46,7 +74,7 @@ const ProfilePage = () => {
       </div>
     );
   }
-  
+
   if (!currentUser.hasFilledProfile) {
     return (
       <div className={styles.container}>
@@ -56,18 +84,16 @@ const ProfilePage = () => {
       </div>
     );
   }
-  
-
 
   const getHackathonById = (id: string): Hackathon | undefined => {
-    return fakeHackathons.find(h => h.id === id);
+    return fakeHackathons.find((h) => h.id === id);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
@@ -78,17 +104,54 @@ const ProfilePage = () => {
           <div className={styles.profileHeader}>
             <div className={styles.avatar}></div>
             <div className={styles.profileInfo}>
-              <h2 className={styles.name}>{currentUser.fullName || currentUser.username}</h2>
-              <p className={styles.username}>@{currentUser.username.replace('@', '')}</p>
+              <h2 className={styles.name}>
+                {currentUser.fullName || currentUser.username}
+              </h2>
+              <p className={styles.username}>
+                @{currentUser.username.replace("@", "")}
+              </p>
             </div>
           </div>
-          
+        </div>
 
+        <div
+          className={styles.profileCard}
+          onClick={() => setIsTeamsOpen(!isTeamsOpen)}
+        >
+          <h2 className={styles.teamTitle}>
+            мои команды
+            <span
+              className={`${styles.teamArrow} ${
+                isTeamsOpen ? styles.open : ""
+              }`}
+            >
+              ▼
+            </span>
+          </h2>
+
+          <div
+            className={`${styles.teamsContainer} ${
+              isTeamsOpen ? styles.open : ""
+            }`}
+          >
+            {myTeams.length === 0 ? (
+              <div className={styles.noTeamsMessage}>
+                <p>У вас пока нет команд</p>
+                <Link to="/hackathons" className={styles.findTeamsLink}>
+                  Найти команду
+                </Link>
+              </div>
+            ) : (
+              myTeams.map((team) => (
+                <TeamCard key={team.id} team={team} />
+              ))
+            )}
+          </div>
         </div>
 
         <div className={styles.currentHackathons}>
           <h3 className={styles.sectionTitle}>текущие хакатоны</h3>
-          
+
           {loading ? (
             <div className={styles.loading}>Загрузка...</div>
           ) : userHackathons.length === 0 ? (
@@ -99,35 +162,55 @@ const ProfilePage = () => {
               </Link>
             </div>
           ) : (
-            userHackathons.map(registration => {
+            userHackathons.map((registration) => {
               const hackathon = getHackathonById(registration.hackathonId);
               if (!hackathon) return null;
-              
+
               return (
-                <div key={registration.hackathonId} className={styles.hackathonCard}>
+                <div
+                  key={registration.hackathonId}
+                  className={styles.hackathonCard}
+                >
                   <div className={styles.hackathonHeader}>
                     <h4 className={styles.hackathonTitle}>{hackathon.title}</h4>
                     <div className={styles.hackathonMeta}>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <img src={CalendarIcon} alt="" className={styles.metaIcon} />
-                        <span>{formatDate(hackathon.startDate)} - {formatDate(hackathon.endDate)}</span>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <img
+                          src={CalendarIcon}
+                          alt=""
+                          className={styles.metaIcon}
+                        />
+                        <span>
+                          {formatDate(hackathon.startDate)} -{" "}
+                          {formatDate(hackathon.endDate)}
+                        </span>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <img src={LocationIcon} alt="" className={styles.metaIcon} />
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <img
+                          src={LocationIcon}
+                          alt=""
+                          className={styles.metaIcon}
+                        />
                         <span>{hackathon.location}</span>
                       </div>
                     </div>
                   </div>
-                  
-                  {registration.hasTeam && registration.teamMembers && registration.teamMembers.length > 0 ? (
+
+                  {registration.hasTeam &&
+                  registration.teamMembers &&
+                  registration.teamMembers.length > 0 ? (
                     <div className={styles.teamSection}>
                       <div className={styles.teamHeader}>
-                        <span>моя команда {registration.teamMembers.length}/5</span>
+                        <span>
+                          моя команда {registration.teamMembers.length}/5
+                        </span>
                       </div>
                       <div className={styles.teamMembers}>
                         {registration.teamMembers.map((member, index) => (
                           <div key={index} className={styles.teamMember}>
-                            <div className={styles.memberAvatar}>{member.charAt(0).toUpperCase()}</div>
+                            <div className={styles.memberAvatar}>
+                              {member.charAt(0).toUpperCase()}
+                            </div>
                             <div className={styles.memberInfo}>
                               <p className={styles.memberName}>{member}</p>
                               <p className={styles.memberRole}>Участник</p>
@@ -152,48 +235,38 @@ const ProfilePage = () => {
         <div className={styles.profileForm}>
           <div className={styles.formHeader}>
             <h3>Анкета</h3>
-            <Link to="/register" className={styles.editButton}>Изм.</Link>
+            <Link to="/register" className={styles.editButton}>
+              <img src={AddingIcon} alt="" className={styles.metaIcon} />
+            </Link>
           </div>
 
           {currentUser.role && (
             <div className={styles.formSection}>
               <label className={styles.formLabel}>роль:</label>
               <div className={styles.tags}>
-                <span className={styles.tag}>{currentUser.customRole || currentUser.role}</span>
+                <span className={styles.tag}>
+                  {currentUser.customRole || currentUser.role}
+                </span>
               </div>
             </div>
           )}
 
-          {(currentUser.wins !== undefined || currentUser.hackathonsCount !== undefined) && (
+          {(currentUser.wins !== undefined ||
+            currentUser.hackathonsCount !== undefined) && (
             <div className={styles.formSection}>
               <label className={styles.formLabel}>опыт:</label>
               <div className={styles.tags}>
                 {currentUser.wins !== undefined && (
-                  <span className={styles.tag}>{currentUser.wins} побед</span>
+                  <span className={styles.tag}> побед: {currentUser.wins}</span>
                 )}
                 {currentUser.hackathonsCount !== undefined && (
-                  <span className={styles.tag}>{currentUser.hackathonsCount} хакатона</span>
+                  <span className={styles.tag}>
+                    хакатонов: {currentUser.hackathonsCount}
+                  </span>
                 )}
               </div>
             </div>
           )}
-
-          <div className={styles.formSection}>
-            <div className={styles.hackathonBadges}>
-              <div className={styles.hackathonBadge} style={{background: '#1a237e'}}>
-                AI Hack Moscow 2025
-              </div>
-              <div className={styles.hackathonBadge} style={{background: '#6a1b9a'}}>
-                IT world 2025
-              </div>
-              <div className={styles.hackathonBadge} style={{background: '#0277bd'}}>
-                HakGO 2024
-              </div>
-              <div className={styles.hackathonBadge} style={{background: '#7cb342'}}>
-                FRAME ME 2024
-              </div>
-            </div>
-          </div>
 
           {currentUser.bio && (
             <div className={styles.formSection}>

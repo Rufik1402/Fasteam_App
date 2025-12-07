@@ -1,0 +1,20 @@
+# Общие
+node_modules/
+.env
+.DS_Store
+dist/
+*.log
+*.tmp
+
+# Vue
+admin/dist/
+admin/node_modules/
+
+# React
+client/build/
+client/node_modules/
+
+# Server
+server/node_modules/
+server/logs/
+

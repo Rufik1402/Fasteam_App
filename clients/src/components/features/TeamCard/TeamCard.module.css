@@ -1,0 +1,190 @@
+.teamCard {
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 0.2px solid #0000004D;
+  transition: transform 0.2s ease;
+}
+
+.teamName {
+  font-family: 'Involve', sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 45px;
+  color: #000000;
+  margin: 0 0 0 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.teamHackathon {
+  font-family: 'Involve', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.teamInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.membersCount {
+  font-family: 'Involve', sans-serif;
+  font-size: 15.55px;
+  font-weight: 500;
+  line-height: 120%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vacanciesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vacanciesLabel {
+  font-family: 'Involve', sans-serif;
+  font-size: 15.55px;
+  font-weight: 500;
+  line-height: 120%;
+  color: #000000;
+
+}
+
+.vacanciesTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vacancyTag {
+  padding: 6px 12px;
+  background: #FFEFC7;
+  border: 0.6px solid #29136091;
+  border-radius: 6px;
+  font-family: 'Involve', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #291360;
+}
+
+.membersSection {
+  margin-bottom: 20px;
+}
+
+.membersTitle {
+  font-family: 'Involve', sans-serif;
+  font-size: 15.55px;
+  font-weight: 500;
+  line-height: 120%;
+  color: #000000;
+}
+
+.membersList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memberCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.memberCard:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.memberInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.memberName {
+  font-family: 'Involve', sans-serif;
+  font-size: 15.55px;
+  font-weight: 500;
+  line-height: 120%;
+  color: #000000;
+  margin: 0 0 4px 0;
+}
+
+.memberRole {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 12px;
+  margin: 0;
+  opacity: 0.7;
+  color: #8A61F1;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.shareButton {
+  flex: 1;
+  padding: 14px 20px;
+  background: #8A61F1;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-transform: lowercase;
+}
+
+.shareButton:hover {
+  background: #7a51e1;
+  transform: translateY(-2px);
+}
+
+.editButton {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  background: #8A61F1;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.editButton:hover {
+  background: #7a51e1;
+  transform: translateY(-2px);
+}
+
+.buttonIcon {
+  font-size: 18px;
+}

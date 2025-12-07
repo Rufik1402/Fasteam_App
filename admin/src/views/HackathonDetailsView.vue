@@ -1,246 +1,225 @@
 <template>
   <div class="hackathon-details">
+    <!-- Убрали большой хедер, оставили только кнопки наверху -->
+    <div class="page-header">
+      <a-button
+          type="text"
+          @click="$router.push('/')"
+          class="back-button"
+      >
+        <arrow-left-outlined />
+        Назад
+      </a-button>
 
-    <a-page-header
-        :title="hackathon.name"
-        :sub-title="formatDates(hackathon.startDate, hackathon.endDate)"
-        @back="$router.push('/')"
-    >
-      <template #extra>
-        <a-space>
+      <div class="header-actions">
+        <a-button @click="shareHackathon" class="share-btn">
+          <share-alt-outlined />
+          Поделиться
+        </a-button>
+        <a-button
+            type="primary"
+            @click="goToEdit"
+            class="edit-btn"
+        >
+          <edit-outlined />
+          Редактировать
+        </a-button>
+      </div>
+    </div>
 
-          <a-button
-              v-if="isAdmin"
-              type="primary"
-              @click="goToEdit"
-          >
-            <template #icon><EditOutlined /></template>
-            Редактировать
-          </a-button>
+    <!-- Основной контент -->
+    <div class="content-wrapper">
+      <div class="main-content">
+        <!-- Заголовок и статус -->
+        <div class="hackathon-header">
+          <div class="status-badge" :class="hackathon.status">
+            {{ getStatusText(hackathon.status) }}
+          </div>
+          <h1>{{ hackathon.name }}</h1>
+          <div class="dates">
+            <calendar-outlined />
+            <span>{{ formatDates(hackathon.startDate, hackathon.endDate) }}</span>
+          </div>
+        </div>
 
-
-          <a-button
-              v-else
-              type="primary"
-              @click="participate"
-              :disabled="hackathon.status !== 'upcoming'"
-          >
-            <template #icon><TeamOutlined /></template>
-            Участвовать
-          </a-button>
-
-          <a-button @click="shareHackathon">
-            <template #icon><ShareAltOutlined /></template>
-            Поделиться
-          </a-button>
-        </a-space>
-      </template>
-    </a-page-header>
-
-
-    <a-row :gutter="24" style="margin-top: 24px">
-
-      <a-col :span="16">
-
-        <a-card v-if="hackathon.image" style="margin-bottom: 24px">
+        <!-- Логотип (если есть) -->
+        <div v-if="hackathon.image" class="logo-section">
           <img
               :src="hackathon.image"
               :alt="hackathon.name"
-              style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px"
+              class="hackathon-logo"
           />
-        </a-card>
+        </div>
 
-
-        <a-card title="Описание" style="margin-bottom: 24px">
-          <div style="white-space: pre-line; line-height: 1.6">
+        <!-- Описание -->
+        <div class="section-card">
+          <h2 class="section-title">Описание</h2>
+          <div class="description-text">
             {{ hackathon.description }}
           </div>
+        </div>
 
-
-        </a-card>
-
-        <a-card v-if="hackathon.location || hackathon.prize" title="Место проведения" style="margin-bottom: 24px">
-          <a-descriptions :column="1" size="small">
-            <a-descriptions-item v-if="hackathon.location" label="">
-              <div style="display: flex; align-items: center; gap: 8px">
-                <environment-outlined />
+        <!-- Детали хакатона -->
+        <div class="details-grid">
+          <!-- Место проведения -->
+          <div class="detail-card" v-if="hackathon.location">
+            <div class="detail-icon">
+              <environment-outlined />
+            </div>
+            <div class="detail-content">
+              <h3>Место проведения</h3>
+              <div class="detail-value">
                 <span v-if="hackathon.location === 'online'">Онлайн</span>
                 <span v-else-if="hackathon.location === 'offline' && hackathon.address">
-          {{ hackathon.address }}
-        </span>
+                  {{ hackathon.address }}
+                </span>
                 <span v-else-if="hackathon.location === 'hybrid' && hackathon.address">
-          Гибрид · {{ hackathon.address }}
-        </span>
+                  Гибрид · {{ hackathon.address }}
+                </span>
               </div>
-            </a-descriptions-item>
+            </div>
+          </div>
 
-          </a-descriptions>
-        </a-card>
+          <!-- Даты проведения -->
+          <div class="detail-card">
+            <div class="detail-icon">
+              <clock-circle-outlined />
+            </div>
+            <div class="detail-content">
+              <h3>Даты проведения</h3>
+              <div class="detail-value">
+                <div><strong>Начало:</strong> {{ formatDateTime(hackathon.startDate) }}</div>
+                <div><strong>Окончание:</strong> {{ formatDateTime(hackathon.endDate) }}</div>
+              </div>
+            </div>
+          </div>
 
+          <!-- Призовой фонд -->
+          <div class="detail-card" v-if="hackathon.prize">
+            <div class="detail-icon">
+              <trophy-outlined />
+            </div>
+            <div class="detail-content">
+              <h3>Призовой фонд</h3>
+              <div class="detail-value prize">{{ hackathon.prize }}</div>
+            </div>
+          </div>
 
-        <a-card title="Направления (треки)" style="margin-bottom: 24px">
-          <a-space wrap>
-            <a-tag
+          <!-- Статистика -->
+          <div class="detail-card">
+            <div class="detail-icon">
+              <team-outlined />
+            </div>
+            <div class="detail-content">
+              <h3>Участие</h3>
+              <div class="detail-value">
+                <div>{{ hackathon.participants || 0 }} участников</div>
+                <div>{{ hackathon.teams || 0 }} команд</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Направления -->
+        <div class="section-card">
+          <h2 class="section-title">Направления (треки)</h2>
+          <div class="tracks-container">
+            <div
                 v-for="track in hackathon.tracks"
                 :key="track"
-                color="blue"
-                size="large"
+                class="track-tag"
             >
               {{ track }}
-            </a-tag>
-          </a-space>
-        </a-card>
-
-        <a-card v-if="hackathon.prize" title="Призовой фонд" style="margin-bottom: 24px">
-          <div style="text-align: center; padding: 20px">
-            <div style="font-size: 32px; color: #fa8c16; font-weight: bold; margin-bottom: 8px">
-              🏆
-            </div>
-            <div style="font-size: 20px; font-weight: 500; color: #333">
-              {{ hackathon.prize }}
-            </div>
-            <div v-if="hackathon.prizeDetails" style="color: #666; margin-top: 8px">
-              {{ hackathon.prizeDetails }}
             </div>
           </div>
-        </a-card>
+        </div>
+      </div>
 
-
-        <a-card title="Правила участия">
-          <a-list item-layout="horizontal">
-            <a-list-item>
-              <template #actions>
-                <a-tag color="green">{{ hackathon.maxTeamSize }} чел.</a-tag>
-              </template>
-              <a-list-item-meta title="Размер команды" />
-            </a-list-item>
-
-            <a-list-item>
-              <template #actions>
-                <a-tag :color="getStatusColor(hackathon.status)">
-                  {{ getStatusText(hackathon.status) }}
-                </a-tag>
-              </template>
-              <a-list-item-meta title="Статус" />
-            </a-list-item>
-
-            <a-list-item>
-              <template #actions>
-                <a-tag color="purple">
-                  {{ hackathon.participants || 0 }} участников
-                </a-tag>
-              </template>
-              <a-list-item-meta title="Уже зарегистрировалось" />
-            </a-list-item>
-
-            <a-list-item v-if="isAdmin">
-              <template #actions>
-                <a-tag color="orange">
-                  {{ hackathon.teams || 0 }} команд
-                </a-tag>
-              </template>
-              <a-list-item-meta title="Сформировано команд" />
-            </a-list-item>
-          </a-list>
-        </a-card>
-      </a-col>
-
-
-      <a-col :span="8">
-        <a-card title="Даты проведения" style="margin-bottom: 24px">
-          <a-timeline>
-            <a-timeline-item color="green">
-              <strong>Начало:</strong>
-              <div>{{ formatDateTime(hackathon.startDate) }}</div>
-            </a-timeline-item>
-
-            <a-timeline-item color="red">
-              <strong>Окончание:</strong>
-              <div>{{ formatDateTime(hackathon.endDate) }}</div>
-            </a-timeline-item>
-
-            <a-timeline-item v-if="timeLeft" color="blue">
-              <strong>До начала:</strong>
-              <div>{{ timeLeft }}</div>
-            </a-timeline-item>
-          </a-timeline>
-        </a-card>
-
-        <a-card v-if="isAdmin" title="Управление" style="margin-bottom: 24px">
-          <a-space direction="vertical" style="width: 100%">
-            <a-button block @click="goToParticipants">
-              <template #icon><TeamOutlined /></template>
+      <!-- Боковая панель -->
+      <div class="sidebar">
+        <!-- Управление -->
+        <div class="sidebar-card">
+          <h3 class="sidebar-title">Управление</h3>
+          <div class="management-buttons">
+            <a-button block @click="goToParticipants" class="management-btn">
+              <team-outlined />
               Участники ({{ hackathon.participants || 0 }})
             </a-button>
-
-            <a-button block @click="goToTeams">
-              <template #icon><GroupOutlined /></template>
+            <a-button block @click="goToTeams" class="management-btn">
+              <group-outlined />
               Команды ({{ hackathon.teams || 0 }})
             </a-button>
-
-            <a-button block @click="exportData">
-              <template #icon><ExportOutlined /></template>
+            <a-button block @click="exportData" class="management-btn">
+              <export-outlined />
               Экспорт данных
             </a-button>
+          </div>
+        </div>
 
-            <a-button block danger @click="deleteHackathon" v-if="isAdmin">
-              <template #icon><DeleteOutlined /></template>
-              Удалить хакатон
-            </a-button>
-          </a-space>
-        </a-card>
-
-
-        <a-card v-else title="Участие">
-          <div style="text-align: center; padding: 16px 0">
-            <a-statistic
-                :value="hackathon.participants || 0"
-                title="Уже участвуют"
-                style="margin-bottom: 16px"
-            />
-
-            <a-button
-                type="primary"
-                size="large"
-                block
-                @click="participate"
-                :disabled="hackathon.status !== 'upcoming'"
-            >
-              Присоединиться
-            </a-button>
-
-            <div style="margin-top: 12px; color: #999; font-size: 12px">
-              <info-circle-outlined />
-              Регистрация закроется за день до начала
+        <!-- Правила участия -->
+        <div class="sidebar-card">
+          <h3 class="sidebar-title">Правила участия</h3>
+          <div class="rules-list">
+            <div class="rule-item">
+              <div class="rule-label">Размер команды</div>
+              <div class="rule-value">{{ hackathon.maxTeamSize }} чел.</div>
+            </div>
+            <div class="rule-item">
+              <div class="rule-label">Статус</div>
+              <div class="rule-value status-value" :class="hackathon.status">
+                {{ getStatusText(hackathon.status) }}
+              </div>
+            </div>
+            <div class="rule-item">
+              <div class="rule-label">Зарегистрировано</div>
+              <div class="rule-value">{{ hackathon.participants || 0 }} участников</div>
             </div>
           </div>
-        </a-card>
+        </div>
 
+        <!-- Организаторы -->
+        <div class="sidebar-card">
+          <h3 class="sidebar-title">Организаторы</h3>
+          <div class="organizers-list">
+            <div v-for="organizer in organizers" :key="organizer.id" class="organizer-item">
+              <div class="organizer-avatar">
+                <img :src="organizer.avatar" :alt="organizer.name" v-if="organizer.avatar">
+                <div v-else class="avatar-placeholder">
+                  {{ organizer.name.charAt(0) }}
+                </div>
+              </div>
+              <div class="organizer-info">
+                <div class="organizer-name">{{ organizer.name }}</div>
+                <div class="organizer-role">{{ organizer.role }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <a-card title="Организаторы">
-          <a-list :data-source="organizers" size="small">
-            <template #renderItem="{ item }">
-              <a-list-item>
-                <a-list-item-meta :title="item.name" :description="item.role">
-                  <template #avatar>
-                    <a-avatar :src="item.avatar" />
-                  </template>
-                </a-list-item-meta>
-              </a-list-item>
-            </template>
-          </a-list>
-        </a-card>
-      </a-col>
-    </a-row>
+        <!-- Кнопка удаления (осталась внизу) -->
+        <div class="sidebar-card actions-card">
+          <a-button
+              block
+              danger
+              @click="deleteHackathon"
+              class="delete-btn"
+          >
+            <delete-outlined />
+            Удалить хакатон
+          </a-button>
+        </div>
+      </div>
+    </div>
 
-
+    <!-- Модалка удаления -->
     <a-modal
         v-model:open="deleteModalVisible"
         title="Удалить хакатон?"
         @ok="confirmDelete"
         ok-text="Удалить"
-        ok-type="danger"
         cancel-text="Отмена"
+        :ok-button-props="{ danger: true }"
+        class="delete-modal"
     >
       <p>Вы уверены, что хотите удалить хакатон "{{ hackathon.name }}"?</p>
       <p style="color: #ff4d4f">Это действие нельзя отменить!</p>
@@ -259,11 +238,15 @@ import {
   GroupOutlined,
   ExportOutlined,
   DeleteOutlined,
-  InfoCircleOutlined
+  CalendarOutlined,
+  EnvironmentOutlined,
+  ClockCircleOutlined,
+  TrophyOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons-vue'
 import { useHackathonsStore } from '../stores/hackathons'
 import { useAuthStore } from '../stores/auth'
-import type { HackathonAdmin } from '..shared/types'
+import type { HackathonAdmin } from '../shared/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -289,29 +272,9 @@ const hackathon = ref<HackathonAdmin>({
 
 const deleteModalVisible = ref(false)
 const organizers = ref([
-  { id: '1', name: 'ITAM Community', role: 'Организатор', avatar: 'https://via.placeholder.com/40' },
-  { id: '2', name: 'Алексей Петров', role: 'Координатор', avatar: 'https://via.placeholder.com/40' }
+  { id: '1', name: 'ITAM Community', role: 'Организатор', avatar: 'https://via.placeholder.com/40/291360/ffffff?text=IT' },
+  { id: '2', name: 'Алексей Петров', role: 'Координатор', avatar: 'https://via.placeholder.com/40/8156FF/ffffff?text=AP' }
 ])
-
-
-const isAdmin = computed(() => {
-  return authStore.isAuthenticated && authStore.user?.role === 'admin'
-})
-
-
-const timeLeft = computed(() => {
-  const start = new Date(hackathon.value.startDate)
-  const now = new Date()
-
-  if (start <= now) return null
-
-  const diff = start.getTime() - now.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-
-  if (days > 0) return `${days} дней ${hours} часов`
-  return `${hours} часов`
-})
 
 onMounted(() => {
   loadHackathon()
@@ -334,7 +297,6 @@ const loadHackathon = async () => {
   }
 }
 
-
 const formatDates = (start: string, end: string) => {
   const startDate = new Date(start).toLocaleDateString('ru-RU')
   const endDate = new Date(end).toLocaleDateString('ru-RU')
@@ -351,16 +313,6 @@ const formatDateTime = (dateString: string) => {
   })
 }
 
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    upcoming: 'green',
-    active: 'blue',
-    finished: 'red',
-    draft: 'gray'
-  }
-  return colors[status] || 'default'
-}
-
 const getStatusText = (status: string) => {
   const texts: Record<string, string> = {
     upcoming: 'Предстоящий',
@@ -371,7 +323,6 @@ const getStatusText = (status: string) => {
   return texts[status] || status
 }
 
-
 const goToEdit = () => {
   router.push(`/hackathons/${hackathon.value.id}/edit`)
 }
@@ -381,23 +332,7 @@ const goToParticipants = () => {
 }
 
 const goToTeams = () => {
-
   message.info('Страница команд в разработке')
-}
-
-const participate = () => {
-  if (isAdmin.value) {
-    message.warning('Вы организатор, не можете участвовать')
-    return
-  }
-
-  if (hackathon.value.status !== 'upcoming') {
-    message.error('Регистрация закрыта')
-    return
-  }
-
-
-  message.info('Регистрация будет в клиентской части')
 }
 
 const shareHackathon = () => {
@@ -428,20 +363,446 @@ const confirmDelete = async () => {
 </script>
 
 <style scoped>
+/* Основные стили */
 .hackathon-details {
+  min-height: 100vh;
+  background: #f8f9fa;
   padding: 24px;
 }
 
-:deep(.ant-page-header) {
-  padding: 0 0 24px 0;
+/* Простой хедер с кнопками */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9ecef;
 }
 
-:deep(.ant-card) {
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+.back-button {
+  color: #291360 !important;
+  padding: 8px 0;
 }
 
-:deep(.ant-tag) {
-  margin-bottom: 4px;
+.back-button:hover {
+  color: #8156FF !important;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.share-btn {
+  background: #ECE3F2 !important;
+  border-color: #ECE3F2 !important;
+  color: #291360 !important;
+}
+
+.share-btn:hover {
+  background: #D6C6E3 !important;
+  border-color: #D6C6E3 !important;
+}
+
+.edit-btn {
+  background: #68507E !important;
+  border-color: #68507E !important;
+  color: white !important;
+}
+
+.edit-btn:hover {
+  background: #8156FF !important;
+  border-color: #8156FF !important;
+}
+
+/* Заголовок хакатона */
+.hackathon-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.status-badge.upcoming {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+  border: 1px solid rgba(82, 196, 26, 0.2);
+}
+
+.status-badge.active {
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+  border: 1px solid rgba(24, 144, 255, 0.2);
+}
+
+.status-badge.finished {
+  background: rgba(250, 140, 22, 0.1);
+  color: #fa8c16;
+  border: 1px solid rgba(250, 140, 22, 0.2);
+}
+
+.hackathon-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: #1a1a1a;
+}
+
+.dates {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #666;
+  font-size: 18px;
+}
+
+/* Основной контент */
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+}
+
+/* Логотип */
+.logo-section {
+  margin-bottom: 32px;
+}
+
+.hackathon-logo {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(41, 19, 96, 0.1);
+}
+
+/* Карточки секций */
+.section-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 24px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(41, 19, 96, 0.05);
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #291360;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f2f5;
+}
+
+.description-text {
+  color: #333;
+  line-height: 1.7;
+  font-size: 16px;
+  white-space: pre-line;
+}
+
+/* Детали в сетке */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.detail-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e9ecef;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+}
+
+.detail-card:hover {
+  border-color: #8156FF;
+  box-shadow: 0 8px 24px rgba(129, 86, 255, 0.1);
+}
+
+.detail-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(129, 86, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #8156FF;
+  flex-shrink: 0;
+}
+
+.detail-content {
+  flex: 1;
+}
+
+.detail-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #1a1a1a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.detail-value.prize {
+  color: #fa8c16;
+  font-size: 22px;
+}
+
+/* Треки */
+.tracks-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.track-tag {
+  background: rgba(129, 86, 255, 0.1);
+  color: #291360;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 15px;
+  border: 1px solid rgba(129, 86, 255, 0.2);
+}
+
+/* Боковая панель */
+.sidebar-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(41, 19, 96, 0.05);
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #291360;
+  margin: 0 0 20px 0;
+}
+
+/* Кнопки управления */
+.management-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.management-btn {
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid #ECE3F2 !important;
+  background: #ECE3F2 !important;
+  color: #291360 !important;
+  font-weight: 500;
+  text-align: left;
+  padding: 0 20px;
+}
+
+.management-btn:hover {
+  background: #D6C6E3 !important;
+  border-color: #D6C6E3 !important;
+  transform: translateY(-2px);
+}
+
+/* Правила */
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.rule-label {
+  color: #666;
+  font-size: 14px;
+}
+
+.rule-value {
+  font-weight: 600;
+  color: #291360;
+}
+
+.rule-value.status-value {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.rule-value.status-value.upcoming {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+}
+
+.rule-value.status-value.active {
+  background: rgba(24, 144, 255, 0.1);
+  color: #1890ff;
+}
+
+.rule-value.status-value.finished {
+  background: rgba(250, 140, 22, 0.1);
+  color: #fa8c16;
+}
+
+/* Организаторы */
+.organizers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.organizer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.organizer-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.organizer-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #291360;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.organizer-info {
+  flex: 1;
+}
+
+.organizer-name {
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.organizer-role {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Кнопка удаления */
+.actions-card {
+  border: 2px dashed #ffccc7;
+  background: #fff2f0;
+}
+
+.delete-btn {
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid #ffccc7 !important;
+  color: #ff4d4f !important;
+  font-weight: 600;
+}
+
+.delete-btn:hover {
+  background: #ff4d4f !important;
+  color: white !important;
+  border-color: #ff4d4f !important;
+}
+
+/* Модалка */
+.delete-modal :deep(.ant-modal-content) {
+  border-radius: 16px;
+}
+
+.delete-modal :deep(.ant-modal-header) {
+  border-radius: 16px 16px 0 0;
+  background: #fff2f0;
+}
+
+.delete-modal :deep(.ant-modal-title) {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .content-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .hackathon-details {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .hackathon-header h1 {
+    font-size: 24px;
+  }
+
+  .section-card,
+  .detail-card,
+  .sidebar-card {
+    padding: 20px;
+  }
 }
 </style>

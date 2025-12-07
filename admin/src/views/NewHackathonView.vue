@@ -210,4 +210,141 @@ const handleSubmit = async () => {
 .new-hackathon-page {
   padding: 24px;
 }
+
+/* Стили для кнопок в заголовке */
+:deep(.ant-page-header .ant-space .ant-btn) {
+  border-radius: 12px;
+  padding: 0 24px;
+  height: 40px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+/* Кнопка "Отмена" */
+:deep(.ant-page-header .ant-space .ant-btn:not([type="primary"])) {
+  background: #ECE3F2 !important;
+  border-color: #ECE3F2 !important;
+  color: #291360 !important;
+}
+
+:deep(.ant-page-header .ant-space .ant-btn:not([type="primary"]):hover) {
+  background: #D6C6E3 !important;
+  border-color: #D6C6E3 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(41, 19, 96, 0.15);
+}
+
+/* Кнопка "Создать хакатон" */
+:deep(.ant-page-header .ant-space .ant-btn[type="primary"]) {
+  background: #68507E !important;
+  border-color: #68507E !important;
+  color: white !important;
+}
+
+:deep(.ant-page-header .ant-space .ant-btn[type="primary"]:hover) {
+  background: #8156FF !important;
+  border-color: #8156FF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(129, 86, 255, 0.2);
+}
+
+/* Стили для полей формы */
+:deep(.ant-input),
+:deep(.ant-input-number),
+:deep(.ant-picker),
+:deep(.ant-select:not(.ant-select-customize-input) .ant-select-selector),
+:deep(.ant-input-textarea .ant-input) {
+  border-radius: 8px;
+  border: 2px solid #D6C6E3 !important;
+  transition: all 0.3s ease;
+}
+
+/* Ховер для всех полей */
+:deep(.ant-input:hover),
+:deep(.ant-input-number:hover),
+:deep(.ant-picker:hover),
+:deep(.ant-select:not(.ant-select-customize-input) .ant-select-selector:hover),
+:deep(.ant-input-textarea .ant-input:hover) {
+  border-color: #8156FF !important;
+}
+
+/* Фокус для всех полей */
+:deep(.ant-input:focus),
+:deep(.ant-input-focused),
+:deep(.ant-input-number:focus),
+:deep(.ant-input-number-focused),
+:deep(.ant-picker-focused),
+:deep(.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector),
+:deep(.ant-input-textarea .ant-input:focus) {
+  border-color: #8156FF !important;
+  box-shadow: 0 0 0 2px rgba(129, 86, 255, 0.1) !important;
+}
+
+/* Убираем синие тени Ant Design */
+:deep(.ant-input-affix-wrapper-focused),
+:deep(.ant-picker-focused),
+:deep(.ant-select-focused .ant-select-selector) {
+  box-shadow: 0 0 0 2px rgba(129, 86, 255, 0.1) !important;
+}
+
+/* Цвет текста в полях */
+:deep(.ant-input),
+:deep(.ant-input::placeholder),
+:deep(.ant-input-number-input),
+:deep(.ant-picker-input input),
+:deep(.ant-select-selection-placeholder) {
+  color: #291360;
+}
+
+:deep(.ant-input::placeholder),
+:deep(.ant-picker-input input::placeholder),
+:deep(.ant-select-selection-placeholder) {
+  color: #8C7AA4;
+}
+
+/* Иконки в полях */
+:deep(.ant-input-prefix),
+:deep(.ant-picker-suffix),
+:deep(.ant-select-arrow) {
+  color: #8156FF !important;
+}
+
+/* Карточка настроек */
+:deep(.ant-card) {
+  border-radius: 12px;
+  border: 1px solid #D6C6E3;
+}
+
+:deep(.ant-card-head) {
+  border-bottom: 1px solid #D6C6E3;
+}
+
+:deep(.ant-card-head-title) {
+  color: #291360;
+  font-weight: 600;
+}
+
+/* Преиму логотипа */
+:deep(img[alt="Preview"]) {
+  border: 2px solid #D6C6E3;
+  border-radius: 8px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .new-hackathon-page {
+    padding: 16px;
+  }
+
+  :deep(.ant-page-header .ant-space) {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  :deep(.ant-page-header .ant-space .ant-btn) {
+    width: 100%;
+  }
+}
 </style>

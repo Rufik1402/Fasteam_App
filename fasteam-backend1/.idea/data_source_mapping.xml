@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/src/main/resources/db/migration/release-0.0.1/V0.0.1_3__create_user_role_table.sql" value="bbf201af-1752-4eb1-9286-ddbab42683af" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/db/migration/release-0.0.1/V0.0.1_4__insert_roles.sql" value="bbf201af-1752-4eb1-9286-ddbab42683af" />
+  </component>
+</project>

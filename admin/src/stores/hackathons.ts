@@ -1,96 +1,132 @@
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { eventsApi } from '../api'
+import type { EventResponse } from '../api'
 
+export type HackathonStatus = 'upcoming' | 'active' | 'finished' | 'draft'
 
 export interface Hackathon {
     id: string
     name: string
-    description: string
+    description?: string
     image?: string
-    status: 'upcoming' | 'active' | 'finished' | 'draft'
+    status: HackathonStatus
     startDate: string
     endDate: string
     participants: number
     teams: number
     tracks: string[]
     maxTeamSize?: number
-    location: 'online' | 'offline' | 'hybrid'
+    location?: 'online' | 'offline' | 'hybrid'
     address?: string
     prize?: string
+    ownerId?: string
+    ownerUsername?: string
+    createdAt?: string
+    isDeleted?: boolean
 }
 
+const deriveStatus = (startDate: string, endDate: string): HackathonStatus => {
+    const now = Date.now()
+    const start = new Date(startDate).getTime()
+    const end = new Date(endDate).getTime()
+
+    if (Number.isNaN(start) || Number.isNaN(end)) return 'draft'
+    if (start > now) return 'upcoming'
+    if (end < now) return 'finished'
+    return 'active'
+}
+
+const mapEventToHackathon = (event: EventResponse): Hackathon => ({
+    id: String(event.id),
+    name: event.name,
+    description: event.description ?? '',
+    startDate: event.startTime,
+    endDate: event.endTime,
+    status: deriveStatus(event.startTime, event.endTime),
+    participants: 0,
+    teams: 0,
+    tracks: [],
+    location: 'online',
+    prize: '',
+    ownerId: event.ownerId,
+    ownerUsername: event.ownerUsername,
+    createdAt: event.createdAt,
+    isDeleted: event.isDeleted
+})
+
 export const useHackathonsStore = defineStore('hackathons', () => {
-    // Список всех хакатонов
-    const hackathons = ref<Hackathon[]>([
-        {
-            id: '1',
-            name: 'ITAM AI Hack 2024',
-            description: 'Хакатон по искусственному интеллекту и машинному обучению с призовым фондом 500 000 ₽',
-            image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=400',
-            status: 'upcoming',
-            startDate: '2024-03-15T10:00:00',
-            endDate: '2024-03-17T18:00:00',
-            participants: 127,
-            teams: 24,
-            tracks: ['AI/ML', 'Computer Vision', 'NLP'],
-            maxTeamSize: 5,
-            location: 'hybrid',
-            address: 'Москва, ул. Льва Толстого, 16',
-            prize: '500 000 ₽ + стажировки в ITAM'
-        },
-        {
-            id: '2',
-            name: 'Web3 Hackathon Online',
-            description: 'Онлайн хакатон по блокчейну и Web3 технологиям',
-            status: 'active',
-            startDate: '2024-02-01T12:00:00',
-            endDate: '2024-02-03T20:00:00',
-            participants: 89,
-            teams: 18,
-            tracks: ['Blockchain', 'Smart Contracts', 'DeFi'],
-            maxTeamSize: 4,
-            location: 'online',
-            prize: 'Главный приз: MacBook Pro'
+    const hackathons = ref<Hackathon[]>([])
+    const loading = ref(false)
+
+    const fetchHackathons = async () => {
+        loading.value = true
+        try {
+            const events = await eventsApi.getEvents()
+            hackathons.value = events.map(mapEventToHackathon)
+        } finally {
+            loading.value = false
         }
-
-    ])
-
-    // Добавить новый хакатон
-    const addHackathon = (hackathon: Omit<Hackathon, 'id' | 'participants' | 'teams'>) => {
-        const newHackathon: Hackathon = {
-            ...hackathon,
-            id: Date.now().toString(), // Генерация ID
-            participants: 0,
-            teams: 0
-        }
-
-        hackathons.value.unshift(newHackathon) // Добавляем в начало
-        return newHackathon
     }
 
-    // Обновить хакатон
-    const updateHackathon = (id: string, updates: Partial<Hackathon>) => {
-        const index = hackathons.value.findIndex(h => h.id === id)
+    const fetchHackathon = async (id: string) => {
+        const existing = hackathons.value.find((h) => h.id === id)
+        if (existing) return existing
+
+        const event = await eventsApi.getEvent(id)
+        const mapped = mapEventToHackathon(event)
+        hackathons.value = [mapped, ...hackathons.value]
+        return mapped
+    }
+
+    const addHackathon = async (hackathon: {
+        name: string
+        description?: string
+        startDate: string
+        endDate: string
+    }) => {
+        const created = await eventsApi.createEvent({
+            name: hackathon.name,
+            description: hackathon.description,
+            startTime: hackathon.startDate,
+            endTime: hackathon.endDate
+        })
+        const mapped = mapEventToHackathon(created)
+        hackathons.value.unshift(mapped)
+        return mapped
+    }
+
+    const updateHackathon = async (id: string, updates: Partial<Hackathon>) => {
+        const updated = await eventsApi.updateEvent(id, {
+            name: updates.name,
+            description: updates.description,
+            startTime: updates.startDate,
+            endTime: updates.endDate
+        })
+
+        const mapped = mapEventToHackathon(updated)
+        const index = hackathons.value.findIndex((h) => h.id === id)
         if (index !== -1) {
-            hackathons.value[index] = { ...hackathons.value[index], ...updates }
+            hackathons.value[index] = mapped
+        } else {
+            hackathons.value.push(mapped)
         }
+        return mapped
     }
 
-    // Удалить хакатон
-    const deleteHackathon = (id: string) => {
-        hackathons.value = hackathons.value.filter(h => h.id !== id)
+    const deleteHackathon = async (id: string) => {
+        await eventsApi.deleteEvent(id)
+        hackathons.value = hackathons.value.filter((h) => h.id !== id)
     }
 
-    // Получить хакатон по ID
-    const getHackathon = (id: string) => {
-        return hackathons.value.find(h => h.id === id)
-    }
-
-
+    const getHackathon = (id: string) => hackathons.value.find((h) => h.id === id)
 
     return {
         hackathons,
+        loading,
+        fetchHackathons,
+        fetchHackathon,
         addHackathon,
         updateHackathon,
         deleteHackathon,

@@ -198,34 +198,37 @@ onMounted(() => {
   loadHackathonData()
 })
 
-const loadHackathonData = () => {
-  const hackathon = hackathonsStore.getHackathon(hackathonId)
+const loadHackathonData = async () => {
+  try {
+    const hackathon = await hackathonsStore.fetchHackathon(hackathonId)
 
-  if (!hackathon) {
-    message.error('Хакатон не найден')
+    if (!hackathon) {
+      message.error('Хакатон не найден')
+      router.push('/')
+      return
+    }
+
+    form.name = hackathon.name
+    form.description = hackathon.description
+    form.image = hackathon.image || ''
+    form.status = hackathon.status
+    form.maxTeamSize = hackathon.maxTeamSize || 5
+    form.tracks = [...hackathon.tracks]
+    form.participants = hackathon.participants
+    form.teams = hackathon.teams
+    form.location = hackathon.location || 'online'
+    form.address = hackathon.address || ''
+    form.prize = hackathon.prize || ''
+
+    if (hackathon.startDate && hackathon.endDate) {
+      form.dates = [
+        dayjs(hackathon.startDate),
+        dayjs(hackathon.endDate)
+      ]
+    }
+  } catch (error) {
+    message.error('Ошибка при загрузке хакатона')
     router.push('/')
-    return
-  }
-
-
-  form.name = hackathon.name
-  form.description = hackathon.description
-  form.image = hackathon.image || ''
-  form.status = hackathon.status
-  form.maxTeamSize = hackathon.maxTeamSize || 5
-  form.tracks = [...hackathon.tracks]
-  form.participants = hackathon.participants
-  form.teams = hackathon.teams
-  form.location = hackathon.location || 'online'
-  form.address = hackathon.address || ''
-  form.prize = hackathon.prize || ''
-
-
-  if (hackathon.startDate && hackathon.endDate) {
-    form.dates = [
-      dayjs(hackathon.startDate),
-      dayjs(hackathon.endDate)
-    ]
   }
 }
 
@@ -272,8 +275,11 @@ const handleSubmit = async () => {
 
     submitting.value = true
 
+    if (!form.dates || form.dates.length !== 2) {
+      throw new Error('Выберите даты проведения')
+    }
 
-    hackathonsStore.updateHackathon(hackathonId, {
+    await hackathonsStore.updateHackathon(hackathonId, {
       name: form.name,
       description: form.description,
       image: form.image,
@@ -314,7 +320,7 @@ const showDeleteConfirm = () => {
 
 const deleteHackathon = async () => {
   try {
-    hackathonsStore.deleteHackathon(hackathonId)
+    await hackathonsStore.deleteHackathon(hackathonId)
     message.success('Хакатон удален')
     router.push('/')
   } catch (error) {

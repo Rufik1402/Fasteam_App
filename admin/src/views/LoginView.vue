@@ -6,8 +6,8 @@
       <h1 style="text-align: center; margin-bottom: 30px">Вход в админ-панель</h1>
 
       <a-form :model="form" @finish="handleLogin">
-        <a-form-item label="Email" required>
-          <a-input v-model:value="form.email" placeholder="admin@itam.com" size="large" />
+        <a-form-item label="Имя пользователя" required>
+          <a-input v-model:value="form.username" placeholder="admin" size="large" />
         </a-form-item>
 
         <a-form-item label="Пароль" required>
@@ -27,9 +27,7 @@
         </a-form-item>
 
         <div style="text-align: center; color: #999; margin-top: 20px">
-          <p>Для демо используйте:</p>
-          <p>Email: <strong>admin@itam.com</strong></p>
-          <p>Пароль: <strong>admin123</strong></p>
+          <p>Введите учетные данные администратора</p>
         </div>
       </a-form>
     </div>
@@ -47,14 +45,14 @@ const authStore = useAuthStore()
 const loading = ref(false)
 
 const form = ref({
-  email: 'admin@itam.com',
+  username: 'admin@itam.com',
   password: 'admin123'
 })
 
 const handleLogin = async () => {
   loading.value = true
   try {
-    await authStore.login(form.value.email, form.value.password)
+    await authStore.login(form.value.username, form.value.password)
     message.success('Успешный вход!')
     router.push('/')
   } catch (error: any) {

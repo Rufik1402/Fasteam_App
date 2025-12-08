@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import HackathonCard from '../../features/HackathonCard/HackathonCard';
-import { fakeHackathons } from '../../../data/mockData';
 import styles from './HackathonPage.module.css';
 import FilterIcon from '../../../assets/icons/filter.svg';
+import { eventsApi } from '../../../api';
+import type { Hackathon } from '../../../types';
 
 const HackathonsPage = () => {
   const [activeTab, setActiveTab] = useState<'все' | 'популярные' | 'регистрация скоро закроется'>('все');
@@ -15,6 +16,33 @@ const HackathonsPage = () => {
   const [onlyWithPrize, setOnlyWithPrize] = useState(false);
   const [closingSoon, setClosingSoon] = useState(false);
   const [popularOnly, setPopularOnly] = useState(false);
+  const [hackathons, setHackathons] = useState<Hackathon[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const events = await eventsApi.getEvents();
+        const mapped: Hackathon[] = events.map((e) => ({
+          id: String(e.id),
+          title: e.name,
+          description: e.description ?? '',
+          startDate: e.startTime,
+          endDate: e.endTime,
+          location: 'онлайн',
+          isActive: true,
+          registrationDeadline: e.endTime,
+        }));
+        setHackathons(mapped);
+      } catch (err) {
+        console.error('Не удалось загрузить хакатоны', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, []);
 
   const roles = [    
     "Design",
@@ -67,7 +95,7 @@ const HackathonsPage = () => {
   };
 
   const filteredHackathons = useMemo(() => {
-    return fakeHackathons.filter(hackathon => {
+    return hackathons.filter(hackathon => {
       if (!hackathon.isActive) return false;
       
       if (activeTab === 'популярные' && hackathon.participants && hackathon.participants < 100) {
@@ -254,21 +282,24 @@ const HackathonsPage = () => {
         )}
       </div>
 
+      {loading && <div className={styles.resultsCount}>Загрузка...</div>}
       <div className={styles.hackathonsList}>
-        {filteredHackathons.length > 0 ? (
+        {!loading && filteredHackathons.length > 0 ? (
           filteredHackathons.map(hackathon => (
             <HackathonCard key={hackathon.id} hackathon={hackathon} />
           ))
         ) : (
-          <div className={styles.noResults}>
-            <p>Нет хакатонов, соответствующих выбранным фильтрам</p>
-            <button 
-              className={styles.noResultsButton}
-              onClick={clearAllFilters}
-            >
-              Показать все хакатоны
-            </button>
-          </div>
+          !loading && (
+            <div className={styles.noResults}>
+              <p>Нет хакатонов, соответствующих выбранным фильтрам</p>
+              <button 
+                className={styles.noResultsButton}
+                onClick={clearAllFilters}
+              >
+                Показать все хакатоны
+              </button>
+            </div>
+          )
         )}
       </div>
     </div>

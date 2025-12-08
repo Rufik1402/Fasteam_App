@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { PlusOutlined, CalendarOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
@@ -101,6 +101,10 @@ const filters = [
 ]
 
 const hackathons = computed(() => hackathonsStore.hackathons)
+
+onMounted(() => {
+  hackathonsStore.fetchHackathons()
+})
 
 const filteredHackathons = computed(() => {
   let result = [...hackathons.value]

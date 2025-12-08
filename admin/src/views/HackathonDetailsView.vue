@@ -246,14 +246,14 @@ import {
 } from '@ant-design/icons-vue'
 import { useHackathonsStore } from '../stores/hackathons'
 import { useAuthStore } from '../stores/auth'
-import type { HackathonAdmin } from '../shared/types'
+import type { Hackathon } from '../stores/hackathons'
 
 const route = useRoute()
 const router = useRouter()
 const hackathonsStore = useHackathonsStore()
 const authStore = useAuthStore()
 
-const hackathon = ref<HackathonAdmin>({
+const hackathon = ref<Hackathon>({
   id: '',
   name: '',
   description: '',
@@ -284,7 +284,7 @@ const loadHackathon = async () => {
   const hackathonId = route.params.id as string
 
   try {
-    const data = hackathonsStore.getHackathon(hackathonId)
+    const data = await hackathonsStore.fetchHackathon(hackathonId)
     if (data) {
       hackathon.value = data
     } else {
@@ -352,7 +352,7 @@ const deleteHackathon = () => {
 
 const confirmDelete = async () => {
   try {
-    hackathonsStore.deleteHackathon(hackathon.value.id)
+    await hackathonsStore.deleteHackathon(hackathon.value.id)
     message.success('Хакатон удален')
     deleteModalVisible.value = false
     router.push('/')

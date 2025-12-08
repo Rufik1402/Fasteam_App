@@ -179,8 +179,11 @@ const handleSubmit = async () => {
 
     submitting.value = true
 
+    if (!form.dates || form.dates.length !== 2) {
+      throw new Error('Выберите даты проведения')
+    }
 
-    const newHackathon = hackathonsStore.addHackathon({
+    const newHackathon = await hackathonsStore.addHackathon({
       name: form.name,
       description: form.description,
       image: form.image,

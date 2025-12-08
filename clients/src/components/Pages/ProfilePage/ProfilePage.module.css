@@ -2,7 +2,12 @@
   font-family: "Involve";
   src: url("../../../assets/fonts/Involve/Involve-Medium.ttf");
   font-weight: 500;
-  font-style: medium;
+}
+
+@font-face {
+  font-family: "Involve";
+  src: url("../../../assets/fonts/Involve/Involve-Regular.ttf");
+  font-weight: 400;
 }
 
 .container {
@@ -75,12 +80,13 @@
 }
 
 .sectionTitle {
-  font-family: "Unbounded", sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: #353232;
-  margin: 0 0 24px 0;
-  text-transform: lowercase;
+  font-family: 'Involve', sans-serif;
+  font-size: 20px;
+  line-height: 31px;
+  font-weight: 500;
+  color: #000000;
+  text-align: center;
+  margin: 0 0 12px 0;
 }
 
 .hackathonCard {
@@ -302,27 +308,22 @@
   color: #666;
 }
 
-.noHackathons {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-}
-
 .browseButton {
   display: inline-block;
-  margin-top: 16px;
+  margin-top: 30px;
   padding: 12px 24px;
-  background: #8a61f1;
+  background: #806295;
   color: white;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 30px;
   font-family: "Unbounded", sans-serif;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
   transition: background 0.2s;
 }
 
 .browseButton:hover {
-  background: #7a51e1;
+  background: #60427B;
 }
 
 .teamTitle {
@@ -447,31 +448,10 @@
 
 .noTeamsMessage {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px 20px;
   color: #666;
   font-family: 'Involve', sans-serif;
   font-size: 16px;
-  background: #F8F4FF;
-  border-radius: 12px;
-  border: 2px dashed #ECE3F2;
-}
-
-.findTeamsLink {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 8px 16px;
-  background: #8A61F1;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-family: 'Unbounded', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.findTeamsLink:hover {
-  background: #7a51e1;
 }
 
 .teamsLoading {
@@ -479,4 +459,144 @@
   padding: 20px;
   color: #666;
   font-family: 'Involve', sans-serif;
+}
+@media screen and (max-width: 768px) {
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    padding-top: 54px;
+    padding-bottom: 100px;
+  }
+  
+  .centerColumn {
+    order: 1;
+    gap: 16px;
+  }
+  
+  .rightColumn {
+    order: 2;
+    position: static;
+    width: 100%;
+  }
+  
+  .profileCard {
+    padding: 20px;
+  }
+  
+  .profileHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+  
+  .avatar {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .profileInfo {
+    padding-left: 0;
+  }
+  
+  .name {
+    font-size: 20px;
+  }
+  
+  .username {
+    font-size: 16px;
+  }
+  
+  .currentHackathons {
+    padding: 20px;
+  }
+  
+  .profileForm {
+    padding: 20px;
+  }
+  
+  .formHeader h3 {
+    font-size: 18px;
+  }
+  
+  .formLabel {
+    font-size: 16px;
+  }
+  
+  .tag {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+  
+  .bioText {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  
+  .teamTitle {
+    font-size: 18px;
+  }
+  
+  .sectionTitle {
+    font-size: 18px;
+  }
+  
+  .browseButton {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .container {
+    padding: 12px;
+    padding-top: 54px;
+    padding-bottom: 100px;
+  }
+  
+  .profileCard,
+  .currentHackathons,
+  .profileForm {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .avatar {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .name {
+    font-size: 18px;
+  }
+  
+  .username {
+    font-size: 14px;
+  }
+  
+  .formHeader h3 {
+    font-size: 16px;
+  }
+  
+  .formLabel {
+    font-size: 14px;
+  }
+  
+  .teamTitle {
+    font-size: 16px;
+  }
+  
+  .sectionTitle {
+    font-size: 16px;
+  }
+  
+  .tag {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  .bioText {
+    font-size: 14px;
+  }
 }

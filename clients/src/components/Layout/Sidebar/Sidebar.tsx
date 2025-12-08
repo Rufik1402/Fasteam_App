@@ -49,7 +49,21 @@ const Sidebar = () => {
           </h3>
         </Link>
       </div>
-
+      <div className={styles.mobileProfile}>
+        <Link 
+          to="/profile" 
+          className={`${styles.mobileProfileLink} ${isProfileActive ? styles.active : ''}`}
+        >
+          <img 
+            src={participantsIcon} 
+            alt="Профиль" 
+            className={styles.mobileProfileIcon}
+          />
+          <span className={styles.mobileProfileName}>
+            Профиль
+          </span>
+        </Link>
+      </div>
       <div className={styles.menu}>
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -66,6 +80,12 @@ const Sidebar = () => {
                 className={styles.buttonIcon}
               />
               <span className={styles.buttonLabel}>{item.label}</span>
+              <span className={styles.mobileButtonLabel}>
+                {item.path === '/teams' && 'команды'}
+                {item.path === '/participants' && 'люди'}
+                {item.path === '/notifications' && 'уведом.'}
+                {item.path === '/hackathons' && 'события'}
+              </span>
             </Link>
           );
         })}

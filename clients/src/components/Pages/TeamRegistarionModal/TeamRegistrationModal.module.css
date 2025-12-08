@@ -117,7 +117,7 @@
 
 .memberInput:focus {
   outline: none;
-  border-color: #8A61F1;
+  border-color: #68507E;
 }
 
 .removeButton {
@@ -168,7 +168,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #8A61F1;
+  border-color: #68507E;
 }
 
 .teamSearchSection {
@@ -205,12 +205,12 @@
 }
 
 .roleButton:hover {
-  border-color: #8A61F1;
+  border-color: #68507E;
 }
 
 .roleButton.selected {
-  background: #8A61F1;
-  border-color: #8A61F1;
+  background: #68507E;
+  border-color: #68507E;
   color: white;
 }
 
@@ -233,11 +233,206 @@
 }
 
 .levelButton:hover {
-  border-color: #8A61F1;
+  border-color: #68507E;
 }
 
 .levelButton.selected {
-  background: #8A61F1;
-  border-color: #8A61F1;
+  background: #68507E;
+  border-color: #68507E;
   color: white;
+}
+
+.roleInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 14px;
+}
+
+.roleInput:focus {
+  outline: none;
+  border-color: #68507E;
+}
+
+@media screen and (max-width: 768px) {
+  .modalOverlay {
+    padding: 10px;
+  }
+  
+  .modal {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 12px;
+  }
+  
+  .modalHeader {
+    padding: 16px;
+  }
+  
+  .modalTitle {
+    font-size: 18px;
+  }
+  
+  .closeButton {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+  
+  .modalContent {
+    padding: 16px;
+  }
+  
+  .question {
+    margin-bottom: 20px;
+  }
+  
+  .questionText {
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  
+  .options {
+    gap: 10px;
+  }
+  
+  .teamSection {
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+  
+  .teamMembers {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .memberInputWrapper {
+    gap: 6px;
+  }
+  
+  .memberInput {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .removeButton {
+    font-size: 18px;
+    padding: 6px;
+  }
+  
+  .modalFooter {
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+  }
+  
+  .modalFooter button {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  .formGroup {
+    margin-bottom: 16px;
+  }
+  
+  .label {
+    font-size: 13px;
+  }
+  
+  .input {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .teamSearchSection {
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+  
+  .infoText {
+    font-size: 13px;
+    padding: 10px;
+  }
+  
+  .rolesGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .roleButton {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .teamLevels {
+    gap: 6px;
+  }
+  
+  .levelButton {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .roleInput {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .modalHeader {
+    padding: 14px;
+  }
+  
+  .modalTitle {
+    font-size: 16px;
+  }
+  
+  .modalContent {
+    padding: 14px;
+  }
+  
+  .questionText {
+    font-size: 14px;
+  }
+  
+  .memberInput {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  
+  .infoText {
+    font-size: 12px;
+  }
+  
+  .rolesGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .roleButton {
+    padding: 7px 10px;
+  }
+  
+  .levelButton {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  
+  .modalFooter {
+    padding: 14px;
+    gap: 8px;
+  }
+  
+  .modalFooter button {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  .roleInput {
+    padding: 9px 12px;
+    font-size: 12px;
+  }
 }

@@ -35,3 +35,16 @@
   color: #6c757d;
   font-size: 1rem;
 }
+
+@media screen and (max-width: 768px) {
+  .mainContainer {
+    padding-bottom: 80px; 
+  }
+  
+  .content {
+    margin-left: 0;
+    width: 100%;
+    padding: 15px;
+    margin-top: 68px; 
+  }
+}

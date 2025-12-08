@@ -18,17 +18,17 @@
 
 /* Варианты */
 .primary {
-  background: #8A61F1;
+  background: #68507E;
   color: white;
 }
 
 .primary:hover:not(:disabled) {
-  background: #7a51e1;
+  background: #68507E;
 }
 
 .secondary {
   background: #B298C5;
-  color: #7556B7;
+  color: #68507E;
 }
 
 .secondary:hover:not(:disabled) {
@@ -37,8 +37,8 @@
 
 .outline {
   background: transparent;
-  border: 2px solid #8A61F1;
-  color: #8A61F1;
+  border: 2px solid #68507E;
+  color: #68507E;
 }
 
 .outline:hover:not(:disabled) {

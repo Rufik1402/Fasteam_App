@@ -1,18 +1,19 @@
 import { useEffect, useState, useCallback } from "react";
 import { useUserStore } from "../../../store/userStore";
 import { useHackathonStore } from "../../../store/hackathonStore";
+import { useTeamStore } from "../../../store/teamStore";
 import { fakeHackathons } from "../../../data/mockData";
 import { Link } from "react-router-dom";
 import type { HackathonRegistration, Hackathon } from "../../../types/index";
-import TeamCard from "../../features/TeamCard/TeamCard";
+import ProfileTeamCard from "../../features/ProfileTeamCard/ProfileTeamCard";
+import ProfileHackathonCard from "../../features/ProfileHackathonCard/ProfileHackathonCard";
 import styles from "./ProfilePage.module.css";
-import CalendarIcon from "../../../assets/icons/calendar.svg";
-import LocationIcon from "../../../assets/icons/Place.svg";
 import AddingIcon from "../../../assets/icons/Add.svg";
 
 const ProfilePage = () => {
   const { currentUser } = useUserStore();
   const { getUserRegistrations } = useHackathonStore();
+  const { getUserTeams } = useTeamStore();
 
   const [userHackathons, setUserHackathons] = useState<HackathonRegistration[]>(
     []
@@ -20,31 +21,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
 
-  const myTeams = [
-    {
-      id: 1,
-      name: "Dream Team",
-      hackathon: "Яндекс Хакатон 2024",
-      members: [
-        { id: 1, name: "Алексей Иванов", role: "Фронтенд" },
-        { id: 2, name: "Мария Петрова", role: "Дизайнер" },
-        { id: 3, name: "Иван Сидоров", role: "Бэкенд" },
-      ],
-      maxMembers: 5,
-      vacancies: ["Designer", "QA"],
-    },
-    {
-      id: 2,
-      name: "Code Masters",
-      hackathon: "AI Challenge 2024",
-      members: [
-        { id: 1, name: "Дмитрий Козлов", role: "ML инженер" },
-        { id: 2, name: "Екатерина Смирнова", role: "Аналитик" },
-      ],
-      maxMembers: 4,
-      vacancies: [],
-    },
-  ];
+  const myTeams = currentUser ? getUserTeams(currentUser.id) : [];
 
   const loadUserData = useCallback(async () => {
     if (!currentUser?.id) return;
@@ -64,6 +41,14 @@ const ProfilePage = () => {
   useEffect(() => {
     loadUserData();
   }, [loadUserData]);
+
+  const handleTeamCardClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); 
+  };
+
+  const handleTeamsSectionClick = () => {
+    setIsTeamsOpen(!isTeamsOpen);
+  };
 
   if (!currentUser) {
     return (
@@ -89,13 +74,12 @@ const ProfilePage = () => {
     return fakeHackathons.find((h) => h.id === id);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("ru-RU", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+  const getAllRoles = () => {
+    if (!currentUser.customRole) return [];
+    return currentUser.customRole.split(", ").filter(role => role.trim());
   };
+
+  const roles = getAllRoles();
 
   return (
     <div className={styles.container}>
@@ -116,7 +100,7 @@ const ProfilePage = () => {
 
         <div
           className={styles.profileCard}
-          onClick={() => setIsTeamsOpen(!isTeamsOpen)}
+          onClick={handleTeamsSectionClick}
         >
           <h2 className={styles.teamTitle}>
             мои команды
@@ -135,15 +119,20 @@ const ProfilePage = () => {
             }`}
           >
             {myTeams.length === 0 ? (
-              <div className={styles.noTeamsMessage}>
+              <div className={styles.noTeamsMessage} onClick={handleTeamCardClick}>
                 <p>У вас пока нет команд</p>
-                <Link to="/hackathons" className={styles.findTeamsLink}>
-                  Найти команду
+                <Link to="/teams" className={styles.browseButton}>
+                  найти команду
                 </Link>
               </div>
             ) : (
               myTeams.map((team) => (
-                <TeamCard key={team.id} team={team} />
+                <div key={team.id} onClick={handleTeamCardClick}>
+                  <ProfileTeamCard 
+                    team={team} 
+                    onTeamUpdate={loadUserData} 
+                  />
+                </div>
               ))
             )}
           </div>
@@ -155,10 +144,10 @@ const ProfilePage = () => {
           {loading ? (
             <div className={styles.loading}>Загрузка...</div>
           ) : userHackathons.length === 0 ? (
-            <div className={styles.noHackathons}>
+            <div className={styles.noTeamsMessage}>
               <p>Вы еще не зарегистрированы ни на один хакатон</p>
               <Link to="/hackathons" className={styles.browseButton}>
-                Найти хакатоны
+                найти хакатоны
               </Link>
             </div>
           ) : (
@@ -167,64 +156,11 @@ const ProfilePage = () => {
               if (!hackathon) return null;
 
               return (
-                <div
+                <ProfileHackathonCard
                   key={registration.hackathonId}
-                  className={styles.hackathonCard}
-                >
-                  <div className={styles.hackathonHeader}>
-                    <h4 className={styles.hackathonTitle}>{hackathon.title}</h4>
-                    <div className={styles.hackathonMeta}>
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <img
-                          src={CalendarIcon}
-                          alt=""
-                          className={styles.metaIcon}
-                        />
-                        <span>
-                          {formatDate(hackathon.startDate)} -{" "}
-                          {formatDate(hackathon.endDate)}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        <img
-                          src={LocationIcon}
-                          alt=""
-                          className={styles.metaIcon}
-                        />
-                        <span>{hackathon.location}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {registration.hasTeam &&
-                  registration.teamMembers &&
-                  registration.teamMembers.length > 0 ? (
-                    <div className={styles.teamSection}>
-                      <div className={styles.teamHeader}>
-                        <span>
-                          моя команда {registration.teamMembers.length}/5
-                        </span>
-                      </div>
-                      <div className={styles.teamMembers}>
-                        {registration.teamMembers.map((member, index) => (
-                          <div key={index} className={styles.teamMember}>
-                            <div className={styles.memberAvatar}>
-                              {member.charAt(0).toUpperCase()}
-                            </div>
-                            <div className={styles.memberInfo}>
-                              <p className={styles.memberName}>{member}</p>
-                              <p className={styles.memberRole}>Участник</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={styles.noTeamSection}>
-                      <p className={styles.noTeamText}>Команды пока нет</p>
-                    </div>
-                  )}
-                </div>
+                  hackathon={hackathon}
+                  registration={registration}
+                />
               );
             })
           )}
@@ -240,13 +176,15 @@ const ProfilePage = () => {
             </Link>
           </div>
 
-          {currentUser.role && (
+          {roles.length > 0 && (
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>роль:</label>
+              <label className={styles.formLabel}>роли:</label>
               <div className={styles.tags}>
-                <span className={styles.tag}>
-                  {currentUser.customRole || currentUser.role}
-                </span>
+                {roles.map((role, index) => (
+                  <span key={index} className={styles.tag}>
+                    {role}
+                  </span>
+                ))}
               </div>
             </div>
           )}

@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: fasteam-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: fasteam
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - fasteam-net
+
+  app:
+    build: .
+    container_name: fasteam-backend
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fasteam
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+      JWT_SECRET: 40ee7ff1ac402e978697b6509829eab58c1274c4376337c89a5590c157a0f1202ed6a73c89d7fedcb8d6b5ca08ded7073e266a3af483997b0a0a46c5bd4cb8d4
+      JWT_EXPIRATION: 3600000
+      JWT_REFRESH_EXPIRATION: 604800000
+
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - fasteam-net
+
+networks:
+  fasteam-net:
+
+volumes:
+  pgdata:

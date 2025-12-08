@@ -1,5 +1,5 @@
 import type { User } from '../../../types';
-
+import styles from './UserCard.module.css';
 
 interface UserCardProps {
   user: User;
@@ -10,80 +10,64 @@ const UserCard = ({ user, onInvite }: UserCardProps) => {
   const getDisplayName = () => {
     return user.fullName || user.username;
   };
-  
-  const getAvatarLetter = () => {
-    const name = user.fullName || user.username;
-    return name.charAt(0).toUpperCase();
-  };
-  
-  const getExperienceText = () => {
-    const parts = [];
-    if (user.hackathonsCount !== undefined) {
-      parts.push(`${user.hackathonsCount} хакатонов`);
-    }
-    if (user.wins !== undefined && user.wins > 0) {
-      parts.push(`${user.wins} побед`);
-    }
-    return parts.length > 0 ? `Опыт: ${parts.join(', ')}` : 'Опыт не указан';
-  };
-  
   if (!user.hasFilledProfile) {
     return (
-      <div>
-        <div>
-          <p>Профиль не заполнен</p>
-          <p>{user.username}</p>
+      <div className={styles.card}>
+        <div className={styles.emptyCard}>
+          <div className={styles.avatar}></div>
+          <div>
+            <p className={styles.unfilledText}>Профиль не заполнен</p>
+            <p className={styles.username}>@{user.username.replace('@', '')}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div>
-        <div>
-          {getAvatarLetter()}
-        </div>
-        <div>
-          <h3>{getDisplayName()}</h3>
-          <p>@{user.username.replace('@', '')}</p>
-          
-          {user.role && (
-            <p>
-              Роль: {user.customRole || user.role}
-            </p>
-          )}
-          
-          <p>
-            {getExperienceText()}
-          </p>
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <div className={styles.avatar}></div>
+        
+        <div className={styles.userInfo}>
+          <h2 className={styles.name}>{getDisplayName()}</h2>
+          <p className={styles.username}>@{user.username.replace('@', '')}</p>
+          <div className={styles.location}>
+            <span className={styles.locationText}>{user.city || 'Москва, Россия'}</span>
+          </div>
         </div>
       </div>
       
-      {user.bio && (
-        <div>
-          <p>{user.bio}</p>
-        </div>
-      )}
-      
-      {user.skills && user.skills.length > 0 && (
-        <div>
-          <h4>Навыки:</h4>
-          <div>
-            {user.skills.map(skill => (
-              <span key={skill}>
-                {skill}
-              </span>
+      <div className={styles.cardBody}>
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>роли:</h3>
+          <div className={styles.tags}>
+            {user.role && (
+              <span className={styles.roleTag}>{user.customRole || user.role}</span>
+            )}
+            {user.skills?.slice(0, 1).map(skill => (
+              <span key={skill} className={styles.roleTag}>{skill}</span>
             ))}
           </div>
         </div>
-      )}
-      
-      <button 
-        onClick={() => onInvite(user.id)}
-      >
-        Пригласить в команду
-      </button>
+        
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>навыки:</h3>
+          <div className={styles.tags}>
+            {user.skills?.slice(0, 3).map(skill => (
+              <span key={skill} className={styles.skillTag}>{skill}</span>
+            ))}
+          </div>
+        </div>
+        
+        <button 
+          className={styles.inviteButton}
+          onClick={() => onInvite(user.id)}
+        >
+          <span className={styles.buttonIcon}></span>
+          пригласить в команду
+        </button>
+      </div>
     </div>
   );
 };

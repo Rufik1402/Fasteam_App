@@ -1,4 +1,3 @@
-// components/TeamRegistrationModal/TeamRegistrationModal.tsx
 import { useState } from 'react';
 import Button from '../../UI/Button/Button';
 import type { RegistrationFormData } from '../../../types/index';
@@ -17,6 +16,7 @@ const TeamRegistrationModal = ({
 }: TeamRegistrationModalProps) => {
   const [hasTeam, setHasTeam] = useState<boolean | null>(null);
   const [teamMembers, setTeamMembers] = useState<string[]>(['']);
+  const [userRole, setUserRole] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -42,6 +42,8 @@ const TeamRegistrationModal = ({
       hackathonId: '', 
       userId: '', 
       hasTeam,
+      userRole: userRole.trim() || undefined,
+      teamStatus: hasTeam ? 'в команде' : 'в поиске',
     };
 
     if (hasTeam === true) {
@@ -67,6 +69,17 @@ const TeamRegistrationModal = ({
         </div>
 
         <div className={styles.modalContent}>
+          <div className={styles.question}>
+            <p className={styles.questionText}>Ваша роль в команде:</p>
+            <input
+              type="text"
+              value={userRole}
+              onChange={(e) => setUserRole(e.target.value)}
+              placeholder="Например: Frontend, Backend, Designer"
+              className={styles.roleInput}
+            />
+          </div>
+
           <div className={styles.question}>
             <p className={styles.questionText}>У вас есть команда?</p>
             <div className={styles.options}>
@@ -127,7 +140,7 @@ const TeamRegistrationModal = ({
           {hasTeam === false && (
             <div className={styles.teamSearchSection}>
               <p className={styles.infoText}>
-                Вы будете зарегистрированы как участник без команды. Организатор распределит вас позже, или вы можете создать запрос на поиск команды в профиле.
+                Вы будете зарегистрированы как участник без команды. Организатор распределит вас позже.
               </p>
             </div>
           )}

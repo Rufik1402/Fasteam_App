@@ -35,3 +35,64 @@
   font-size: 24px;
   color: #FFFFFF;
 }
+
+@media screen and (max-width: 1024px) {
+  .header {
+    width: calc(100% - 200px);
+    margin-left: 200px;
+    height: 60px;
+  }
+  
+  .logoText {
+    font-size: 20px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+    width: 100%;
+    margin-left: 0;
+    height: 56px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+  
+  .logoContainer {
+    width: 100%;
+    justify-content: center;
+    padding-left: 0;
+  }
+  
+  .logoBackground {
+    border-radius: 8px;
+    padding: 8px 24px;
+    margin-bottom: 0;
+    margin-top: 20px;
+  }
+  
+  .logoText {
+    font-size: 20px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .header {
+    height: 56px;
+  }
+  
+  .logoContainer {
+    justify-content: center;
+    padding-left: 0;
+  }
+  
+  .logoBackground {
+    padding: 8px 20px;
+    margin-top: 18px;
+  }
+  
+  .logoText {
+    font-size: 18px;
+  }
+}

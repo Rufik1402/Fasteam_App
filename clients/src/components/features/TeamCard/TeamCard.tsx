@@ -3,8 +3,8 @@ import styles from './TeamCard.module.css';
 
 interface TeamCardProps {
   team: Team;
-  onEdit?: (teamId: number) => void;
-  onShare?: (teamId: number) => void;
+  onEdit?: (teamId: string) => void;
+  onShare?: (teamId: string) => void;
 }
 
 const TeamCard = ({ team, onEdit, onShare }: TeamCardProps) => {
@@ -14,7 +14,7 @@ const TeamCard = ({ team, onEdit, onShare }: TeamCardProps) => {
   return (
     <div className={styles.teamCard}>
       <h3 className={styles.teamName}>{team.name}</h3>
-      <p className={styles.teamHackathon}>{team.hackathon}</p>
+      <p className={styles.teamHackathon}>{team.hackathonName}</p>
 
       <div className={styles.teamInfo}>
         <span className={styles.membersCount}>
@@ -40,7 +40,7 @@ const TeamCard = ({ team, onEdit, onShare }: TeamCardProps) => {
           {team.members.map((member) => (
             <div key={member.id} className={styles.memberCard}>
               <div className={styles.memberInfo}>
-                <p className={styles.memberName}>{member.name}</p>
+                <p className={styles.memberName}>{member.fullName || member.username}</p>
                 <p className={styles.memberRole}>{member.role}</p>
               </div>
             </div>

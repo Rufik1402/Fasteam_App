@@ -1,246 +1,394 @@
-// pages/FindTeamPage/FindTeamPage.tsx
 import { useState } from "react";
-import { useHackathonStore } from "../../../store/hackathonStore";
-import { useUserStore } from "../../../store/userStore";
+import TeamPageCard from "../../../components/features/TeamPageCard/TeamPageCard";
 import { fakeHackathons } from "../../../data/mockData";
 import styles from "./TeamPage.module.css";
 
 const TeamPage = () => {
-  const { teamRequests, applyToTeam } = useHackathonStore();
-  const { currentUser } = useUserStore();
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
+  const [selectedTeamSize, setSelectedTeamSize] = useState<string>("any");
+  const [selectedLevel, setSelectedLevel] = useState<string>("any");
+  const [popularOnly, setPopularOnly] = useState(false);
+  const [closingSoon, setClosingSoon] = useState(false);
+  const [withPrize, setWithPrize] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [filters, setFilters] = useState({
-    hackathonId: "" as string,
-    neededRoles: [] as string[],
-    teamLevel: "" as string,
-  });
+  const mockTeams = [
+    {
+      id: "1",
+      name: "AI Masters",
+      hackathonId: "1",
+      hackathonName: "AI Challenge 2024",
+      captainId: "1",
+      members: [
+        {
+          id: "1",
+          userId: "1",
+          username: "kirill",
+          fullName: "Кирилл",
+          role: "Design",
+          isCaptain: true,
+        },
+        {
+          id: "2",
+          userId: "2",
+          username: "alex",
+          fullName: "Алексей",
+          role: "Backend",
+          isCaptain: false,
+        },
+        {
+          id: "3",
+          userId: "3",
+          username: "maria",
+          fullName: "Мария",
+          role: "Frontend",
+          isCaptain: false,
+        },
+      ],
+      maxMembers: 5,
+      vacancies: ["Design", "Backend"],
+      createdAt: new Date(),
+    },
+    {
+      id: "2",
+      name: "FinTech Warriors",
+      hackathonId: "2",
+      hackathonName: "FinTech Hack",
+      captainId: "2",
+      members: [
+        {
+          id: "4",
+          userId: "4",
+          username: "ivan",
+          fullName: "Иван",
+          role: "Frontend",
+          isCaptain: true,
+        },
+        {
+          id: "5",
+          userId: "5",
+          username: "anna",
+          fullName: "Анна",
+          role: "ML/AI",
+          isCaptain: false,
+        },
+      ],
+      maxMembers: 6,
+      vacancies: ["Frontend", "Team Lead", "ML/AI"],
+      createdAt: new Date(),
+    },
+  ];
 
-  const hackathons = fakeHackathons;
-  const [allRoles] = useState([
-    "бэк",
-    "фронт",
-    "фулл стек",
-    "дизайн",
-    "аналитик",
-    "продакт менеджер",
-  ]);
-  const [teamLevels] = useState([
-    "новички",
-    "опытные",
-    "смешанная",
-    "профессиональная",
-  ]);
+  const roles = [
+    "Design",
+    "Frontend",
+    "Backend",
+    "Team Lead",
+    "ML/AI",
+    "GA",
+    "DevOps",
+  ];
+  const dateRanges = [
+    { value: "all", label: "все даты" },
+    { value: "week", label: "на этой неделе" },
+    { value: "month", label: "в этом месяце" },
+  ];
+  const teamSizes = [
+    { value: "any", label: "любой" },
+    { value: "small", label: "малый (2-3)" },
+    { value: "medium", label: "средний (4-6)" },
+    { value: "large", label: "большой (6+)" },
+  ];
+  const levels = [
+    { value: "any", label: "любой" },
+    { value: "beginners", label: "новички" },
+    { value: "experienced", label: "есть опыт" },
+    { value: "experts", label: "эксперты" },
+  ];
 
-  const handleApply = (requestUserId: string, hackathonId: string) => {
-    if (!currentUser) {
-      alert("Войдите в систему, чтобы подать заявку");
-      return;
-    }
-
-    if (requestUserId === currentUser.id) {
-      alert("Вы не можете подать заявку на свой собственный запрос");
-      return;
-    }
-
-    applyToTeam(hackathonId, requestUserId, currentUser.id);
-    alert("Заявка подана!");
+  const toggleRole = (role: string) => {
+    setSelectedRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
+    );
   };
 
-  const handleRoleToggle = (role: string) => {
-    if (filters.neededRoles.includes(role)) {
-      setFilters({
-        ...filters,
-        neededRoles: filters.neededRoles.filter((r) => r !== role),
-      });
-    } else {
-      setFilters({
-        ...filters,
-        neededRoles: [...filters.neededRoles, role],
-      });
-    }
+  const clearAllFilters = () => {
+    setSelectedRoles([]);
+    setSelectedDateRange("all");
+    setSelectedTeamSize("any");
+    setSelectedLevel("any");
+    setPopularOnly(false);
+    setClosingSoon(false);
+    setWithPrize(false);
+    setSearchQuery("");
   };
 
-  const handleClearFilters = () => {
-    setFilters({
-      hackathonId: "",
-      neededRoles: [],
-      teamLevel: "",
-    });
-  };
+  const filteredTeams = mockTeams.filter((team) => {
+    const hackathon = fakeHackathons.find((h) => h.id === team.hackathonId);
 
-  // Фильтруем запросы
-  const filteredRequests = teamRequests.filter((request) => {
-    // Фильтр по хакатону
-    if (filters.hackathonId && request.hackathonId !== filters.hackathonId) {
-      return false;
+    if (!hackathon) return false;
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const teamName = team.name.toLowerCase();
+      const hackathonName = hackathon.title.toLowerCase();
+
+      if (!teamName.includes(query) && !hackathonName.includes(query)) {
+        return false;
+      }
     }
 
-    // Фильтр по ролям
-    if (filters.neededRoles.length > 0) {
-      const hasMatchingRole = filters.neededRoles.some((role) =>
-        request.neededRoles.includes(role)
+    if (selectedRoles.length > 0) {
+      const hasMatchingRole = selectedRoles.some((role) =>
+        team.vacancies.some((vacancy) =>
+          vacancy.toLowerCase().includes(role.toLowerCase())
+        )
       );
       if (!hasMatchingRole) return false;
     }
 
-    // Фильтр по уровню команды
-    if (filters.teamLevel && request.teamLevel !== filters.teamLevel) {
-      return false;
+    if (selectedTeamSize !== "any") {
+      const teamSize = team.members.length;
+      switch (selectedTeamSize) {
+        case "small":
+          if (teamSize < 2 || teamSize > 3) return false;
+          break;
+        case "medium":
+          if (teamSize < 4 || teamSize > 6) return false;
+          break;
+        case "large":
+          if (teamSize < 7) return false;
+          break;
+      }
     }
 
     return true;
   });
 
+  const handleApply = (teamId: string) => {
+    console.log(`Заявка отправлена в команду ${teamId}`);
+  };
+
+  const getHackathonForTeam = (team: (typeof mockTeams)[0]) => {
+    return (
+      fakeHackathons.find((h) => h.id === team.hackathonId) || fakeHackathons[0]
+    );
+  };
   return (
-    <div className={styles.container}>
+    <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Найти команду</h1>
-        <p className={styles.subtitle}>
-          Найдите подходящую команду для участия в хакатоне
-        </p>
+        <h1 className={styles.title}>найти команду</h1>
+
+        <button
+          className={styles.filterToggle}
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          Фильтры
+          {(selectedRoles.length > 0 ||
+            selectedDateRange !== "all" ||
+            selectedTeamSize !== "any" ||
+            selectedLevel !== "any" ||
+            popularOnly ||
+            closingSoon ||
+            withPrize) && (
+            <span className={styles.filterCount}>
+              {selectedRoles.length +
+                (selectedDateRange !== "all" ? 1 : 0) +
+                (selectedTeamSize !== "any" ? 1 : 0) +
+                (selectedLevel !== "any" ? 1 : 0) +
+                (popularOnly ? 1 : 0) +
+                (closingSoon ? 1 : 0) +
+                (withPrize ? 1 : 0)}
+            </span>
+          )}
+        </button>
       </div>
 
-      <div className={styles.content}>
-        {/* Фильтры */}
-        <div className={styles.filtersSection}>
-          <h3 className={styles.filtersTitle}>Фильтры</h3>
+      <div className={styles.searchSection}>
+        <input
+          type="text"
+          placeholder="Поиск по названию команды или хакатону..."
+          className={styles.searchInput}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Хакатон</label>
-            <select
-              className={styles.select}
-              value={filters.hackathonId}
-              onChange={(e) =>
-                setFilters({ ...filters, hackathonId: e.target.value })
-              }
-            >
-              <option value="">Все хакатоны</option>
-              {hackathons.map((hackathon) => (
-                <option key={hackathon.id} value={hackathon.id}>
-                  {hackathon.title}
-                </option>
-              ))}
-            </select>
+      {showFilters && (
+        <div className={styles.filtersBlock}>
+          <div className={styles.filtersHeader}>
+            <h3 className={styles.filtersTitle}>Фильтры</h3>
+            <button className={styles.clearButton} onClick={clearAllFilters}>
+              Очистить все
+            </button>
           </div>
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Нужные роли</label>
-            <div className={styles.rolesGrid}>
-              {allRoles.map((role) => (
+          <div className={styles.filtersGrid}>
+            <div className={styles.filterGroup}>
+              <div className={styles.filterGroupTitle}>ИЩУТ РОЛИ</div>
+              <div className={styles.rolesGrid}>
+                {roles.map((role) => (
+                  <button
+                    key={role}
+                    className={`${styles.roleButton} ${
+                      selectedRoles.includes(role)
+                        ? styles.roleButtonActive
+                        : ""
+                    }`}
+                    onClick={() => toggleRole(role)}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.filterGroup}>
+              <div className={styles.filterGroupTitle}>ДАТЫ ПРОВЕДЕНИЯ</div>
+              <div className={styles.filterOptions}>
                 <button
-                  key={role}
-                  type="button"
-                  className={`${styles.roleButton} ${
-                    filters.neededRoles.includes(role) ? styles.selected : ""
+                  className={`${styles.filterOption} ${
+                    selectedDateRange === "all" ? styles.filterOptionActive : ""
                   }`}
-                  onClick={() => handleRoleToggle(role)}
+                  onClick={() => setSelectedDateRange("all")}
                 >
-                  {role}
+                  все даты
                 </button>
-              ))}
+                {dateRanges.slice(1).map((range) => (
+                  <button
+                    key={range.value}
+                    className={`${styles.filterOption} ${
+                      selectedDateRange === range.value
+                        ? styles.filterOptionActive
+                        : ""
+                    }`}
+                    onClick={() => setSelectedDateRange(range.value)}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+              </div>
+              <div className={styles.dateCustom}>
+              </div>
+            </div>
+
+            <div className={styles.filterDivider} />
+
+            <div className={styles.filterGroup}>
+              <div className={styles.filterGroupTitle}>Размер команды</div>
+              <div className={styles.filterOptions}>
+                {teamSizes.map((size) => (
+                  <button
+                    key={size.value}
+                    className={`${styles.filterOption} ${
+                      selectedTeamSize === size.value
+                        ? styles.filterOptionActive
+                        : ""
+                    }`}
+                    onClick={() => setSelectedTeamSize(size.value)}
+                  >
+                    {size.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.filterDivider} />
+
+            <div className={styles.filterGroup}>
+              <div className={styles.filterGroupTitle}>Уровень</div>
+              <div className={styles.filterOptions}>
+                {levels.map((level) => (
+                  <button
+                    key={level.value}
+                    className={`${styles.filterOption} ${
+                      selectedLevel === level.value
+                        ? styles.filterOptionActive
+                        : ""
+                    }`}
+                    onClick={() => setSelectedLevel(level.value)}
+                  >
+                    {level.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.filterDivider} />
+
+            <div className={styles.filterGroup}>
+              <div className={styles.checkboxFilters}>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={popularOnly}
+                    onChange={(e) => setPopularOnly(e.target.checked)}
+                    className={styles.checkboxInput}
+                  />
+                  <span className={styles.checkboxLabel}>Популярные</span>
+                </label>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={closingSoon}
+                    onChange={(e) => setClosingSoon(e.target.checked)}
+                    className={styles.checkboxInput}
+                  />
+                  <span className={styles.checkboxLabel}>
+                    регистрация скоро закроется
+                  </span>
+                </label>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={withPrize}
+                    onChange={(e) => setWithPrize(e.target.checked)}
+                    className={styles.checkboxInput}
+                  />
+                  <span className={styles.checkboxLabel}>
+                    с призовым фондом
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Уровень команды</label>
-            <div className={styles.levelButtons}>
-              {teamLevels.map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  className={`${styles.levelButton} ${
-                    filters.teamLevel === level ? styles.selected : ""
-                  }`}
-                  onClick={() => setFilters({ ...filters, teamLevel: level })}
-                >
-                  {level}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button className={styles.clearButton} onClick={handleClearFilters}>
+      <div className={styles.resultsInfo}>
+        <span className={styles.resultsCount}>
+          Найдено команд: {filteredTeams.length}
+        </span>
+        {filteredTeams.length === 0 && (
+          <button className={styles.resetButton} onClick={clearAllFilters}>
             Сбросить фильтры
           </button>
-        </div>
+        )}
+      </div>
 
-        {/* Список запросов */}
-        <div className={styles.requestsList}>
-          {filteredRequests.length === 0 ? (
-            <div className={styles.noResults}>
-              <p>По вашим фильтрам ничего не найдено</p>
-              <p>
-                Попробуйте изменить фильтры или создайте свой запрос на странице
-                профиля
-              </p>
-            </div>
-          ) : (
-            filteredRequests.map((request) => {
-              const hasApplied = currentUser
-                ? request.applications.includes(currentUser.id)
-                : false;
-              const isOwnRequest = currentUser?.id === request.userId;
-
-              return (
-                <div
-                  key={`${request.hackathonId}-${request.userId}`}
-                  className={styles.requestCard}
-                >
-                  <div className={styles.requestHeader}>
-                    <h3 className={styles.requestTitle}>
-                      Поиск команды для хакатона #{request.hackathonId}
-                    </h3>
-                    <span className={styles.requestDate}>
-                      {new Date(request.createdAt).toLocaleDateString("ru-RU")}
-                    </span>
-                  </div>
-
-                  <div className={styles.requestContent}>
-                    <div className={styles.requestDetails}>
-                      <p className={styles.detailItem}>
-                        <strong>Нужные роли:</strong>{" "}
-                        {request.neededRoles.join(", ")}
-                      </p>
-                      <p className={styles.detailItem}>
-                        <strong>Уровень команды:</strong> {request.teamLevel}
-                      </p>
-                      <p className={styles.detailItem}>
-                        <strong>Заявок подано:</strong>{" "}
-                        {request.applications.length}
-                      </p>
-                      {request.description && (
-                        <p className={styles.detailItem}>
-                          <strong>Описание:</strong> {request.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className={styles.requestActions}>
-                      {!currentUser ? (
-                        <p className={styles.loginPrompt}>
-                          Войдите в систему, чтобы подать заявку
-                        </p>
-                      ) : isOwnRequest ? (
-                        <p className={styles.ownRequest}>Это ваш запрос</p>
-                      ) : hasApplied ? (
-                        <p className={styles.applied}>Вы уже подали заявку</p>
-                      ) : (
-                        <button
-                          className={styles.applyButton}
-                          onClick={() =>
-                            handleApply(request.userId, request.hackathonId)
-                          }
-                        >
-                          Подать заявку
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+      <div className={styles.teamsGrid}>
+        {filteredTeams.length > 0 ? (
+          filteredTeams.map((team) => (
+            <TeamPageCard
+              key={team.id}
+              team={team}
+              hackathon={getHackathonForTeam(team)}
+              onApply={() => handleApply(team.id)}
+            />
+          ))
+        ) : (
+          <div className={styles.noResults}>
+            <p>Нет команд, соответствующих выбранным фильтрам</p>
+            <button
+              className={styles.noResultsButton}
+              onClick={clearAllFilters}
+            >
+              Показать все команды
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

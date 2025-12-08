@@ -4,12 +4,15 @@ export interface User {
   username: string;
   fullName?: string;
   role?: string;
-  customRole?: string; 
+  customRole?: string;
   wins?: number;
   hackathonsCount?: number;
   bio?: string;
   skills?: string[];
-  hasFilledProfile: boolean; 
+  hasFilledProfile: boolean;
+  city?: string;
+  experience?: 'новичок' | 'есть опыт' | 'эксперт' | 'профессионал';
+  isPopular?: boolean;
 }
 
 export interface Hackathon {
@@ -26,6 +29,7 @@ export interface Hackathon {
   format?: 'онлайн' | 'офлайн' | 'гибрид';
   status?: 'предстоящий' | 'активный' | 'завершенный';
   directions?: ('AI/ML' | 'финансовые' | 'игровые' | 'соц проекты' | 'экология' | 'для начинающих')[];
+  registrationDeadline: string;
 }
 
 export interface HackathonRegistration {
@@ -39,6 +43,8 @@ export interface HackathonRegistration {
   neededRoles?: string[];
   teamLevel?: 'новички' | 'опытные' | 'смешанная' | 'профессиональная';
   city?: string;
+  userRole?: string; 
+  teamStatus?: 'в команде' | 'в поиске'; 
 }
 export interface TeamRequest {
   hackathonId: string;
@@ -59,16 +65,35 @@ export interface HackathonFilters {
 export type RegistrationFormData = Omit<HackathonRegistration, 'registeredAt'>;
 
 export interface TeamMember {
-  id: number;
-  name: string;
+  id: string;
+  userId: string;
+  username: string;
+  fullName?: string;
   role: string;
+  isCaptain: boolean;
 }
 
 export interface Team {
-  id: number;
+  id: string;
   name: string;
-  hackathon: string;
+  hackathonId: string;
+  hackathonName: string;
+  captainId: string; 
   members: TeamMember[];
-  maxMembers?: number;
-  vacancies?: string[];
+  maxMembers: number;
+  vacancies: string[];
+  inviteToken?: string; 
+  createdAt: Date;
+}
+
+export interface TeamApplication {
+  id: string;
+  teamId: string;
+  userId: string;
+  userName: string;
+  userFullName: string;
+  role: string;
+  message?: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: Date;
 }

@@ -1,0 +1,377 @@
+@font-face {
+  font-family: "Involve";
+  src: url("../../../assets/fonts/Involve/Involve-Medium.ttf");
+  font-weight: 500;
+  font-style: medium;
+}
+
+.teamCard {
+  border-radius: 30px;
+  padding: 32px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: white;
+  position: relative;
+}
+
+.cardTitle {
+  font-family: "Involve", sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #000;
+  text-align: center;
+  margin: 0 0 20px 0;
+  letter-spacing: 1px;
+}
+
+.teamName {
+  font-family: "Unbounded", sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #000000;
+  text-align: center;
+  margin: 0 0 24px 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.captainBadge {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+}
+
+.infoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.metaIcon{
+  width: 19px;
+}
+
+.infoText {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  color: #000;
+}
+
+.separator {
+  font-size: 18px;
+  color: #ccc;
+  margin: 0 4px;
+}
+
+.vacanciesLabel {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  color: #000;
+}
+
+.vacanciesTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vacancyTag {
+  padding: 6px 14px;
+  background: #f5f0e8;
+  color: #8a7556;
+  border-radius: 12px;
+  font-family: "Involve", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #d4c4a8;
+}
+
+.membersSection {
+  margin-bottom: 24px;
+}
+
+.membersTitle {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  margin: 0 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.membersList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.memberCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 20px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  border: solid 1px #0000004D;
+}
+
+.memberName {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.captainLabel {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+}
+
+.memberRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.memberRole {
+  padding: 1px 10px;
+  background: #FFEFC7;
+  color: #291360;
+  border-radius: 6px;
+  font-family: "Involve", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #29136091;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.shareButton {
+  flex: 1;
+  padding: 10px 16px;
+  background: #6E3BED;
+  border: none;
+  border-radius: 40px;
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.shareButton:hover {
+  background: #6c4fb7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 95, 199, 0.3);
+}
+
+.linkIcon {
+  font-size: 20px;
+}
+
+.editButton {
+  width: 40px;
+  height: 40px;
+  background: #6E3BED;
+  border: none;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.editButton:hover {
+  background: #c4b8d0;
+  transform: scale(1.1);
+}
+
+.notification {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4caf50;
+  color: white;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-family: "Involve", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+  z-index: 10;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+@media (max-width: 768px) {
+  .teamCard {
+    padding: 20px;
+  }
+
+  .cardTitle {
+    font-size: 24px;
+  }
+
+  .teamName {
+    font-size: 20px;
+  }
+
+  .teamInfo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .separator {
+    display: none;
+  }
+
+  .memberCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .memberRight {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .editButton {
+    width: 100%;
+    border-radius: 20px;
+    height: 50px;
+  }
+}
+
+.selectedCount {
+  color: #ef5350;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.removeCheckbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #ef5350;
+  border-radius: 4px;
+  background: white;
+  color: #ef5350;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  transition: all 0.2s ease;
+}
+
+.removeCheckbox:hover {
+  background: #ffebee;
+}
+
+.removeCheckbox.selected {
+  background: #ef5350;
+  color: white;
+}
+
+.editContainer {
+  display: flex;
+  align-items: center;
+}
+.editButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.cancelEditButton {
+  padding: 8px 16px;
+  background: #757575;
+  border: none;
+  border-radius: 20px;
+  font-family: "Involve", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.cancelEditButton:hover {
+  background: #616161;
+}
+
+.removeButton {
+  padding: 8px 16px;
+  background: #ef5350;
+  border: none;
+  border-radius: 20px;
+  font-family: "Involve", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.removeButton:hover:not(:disabled) {
+  background: #d32f2f;
+}
+
+.removeButton:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+  .editButtons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .cancelEditButton,
+  .removeButton {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+}

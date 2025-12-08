@@ -29,10 +29,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #FFFFFF;
   flex-shrink: 0;
 }
 
-.userInfo {
+.teamInfo {
   flex: 1;
   padding-top: 8px;
 }
@@ -42,24 +46,37 @@
   font-size: 24px;
   font-weight: 700;
   color: #FFFFFF;
-  margin: 0 0 4px 0;
+  margin: 0 0 8px 0;
   line-height: 1.2;
 }
 
-.username {
+.teamMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.captainLabel {
   font-family: 'Unbounded', sans-serif;
   font-size: 14px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0 0 8px 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.captain {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
   text-decoration: underline;
 }
 
-.location {
+.teamSize {
   margin-top: 8px;
 }
 
-.locationText {
+.sizeText {
   font-family: 'Unbounded', sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -71,10 +88,13 @@
   background: #FFFFFF;
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
 .section {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .sectionTitle {
@@ -82,7 +102,7 @@
   font-size: 14px;
   font-weight: 600;
   color: #000;
-  margin: 0 0 10px 0;
+  margin: 0;
   text-transform: lowercase;
 }
 
@@ -109,12 +129,81 @@
   font-weight: 500;
   color: #291360;
   background: #88BBBE;
-  padding: 4px 8px;
+  padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid #29136091;
 }
 
-.inviteButton {
+.noSkills {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 14px;
+  color: #6B7280;
+  font-style: italic;
+}
+
+.moreSkills {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #632EE9;
+  background: #F3F0FF;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #E0D6FF;
+}
+
+.hackathonInfo {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+
+.hackathonName {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.registrationSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 12px;
+  background: #F9FAFB;
+  border-radius: 10px;
+  border: 1px solid #E5E7EB;
+}
+
+.registrationStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusText {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #10B981;
+  text-transform: lowercase;
+}
+
+.deadline {
+  padding-left: 14px;
+}
+
+.deadlineText {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B7280;
+  text-transform: lowercase;
+}
+
+.applyButton {
   width: 100%;
   padding: 12px 24px;
   background: #632EE9;
@@ -131,159 +220,29 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: auto;
+  margin-top: 10px;
 }
 
-.inviteButton:hover {
+.applyButton:hover:not(:disabled) {
   background: #6c4fb7;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(124, 95, 199, 0.4);
 }
 
-.inviteButton:active {
+.applyButton:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.buttonIcon {
-  font-size: 18px;
+.applyButton:disabled {
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.emptyCard {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
+.applyButton.ownTeamButton:disabled {
+  background: #10B981;
 }
 
-.emptyCard .avatar {
-  width: 50px;
-  height: 50px;
-  font-size: 22px;
-  background: #8A61F1;
-}
-
-.unfilledText {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #EF4444;
-  margin: 0 0 4px 0;
-}
-
-.emptyCard .username {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 12px;
-  color: #6B7280;
-  margin: 0;
-  text-decoration: none;
-}
-
-@media screen and (max-width: 768px) {
-  .card {
-    max-width: 100%;
-    width: 100%;
-  }
-  
-  .cardHeader {
-    padding: 16px;
-    align-items: flex-start;
-    gap: 12px;
-    flex-direction: column; 
-  }
-  .avatar {
-    display: none; 
-  }
-  
-  .userInfo {
-    padding-top: 0;
-    width: 100%;
-  }
-  
-  .name {
-    font-size: 20px; 
-    line-height: 1.1;
-    word-break: break-word; 
-  }
-  
-  .username {
-    font-size: 13px;
-    margin-bottom: 6px;
-  }
-  
-  .locationText {
-    font-size: 13px;
-  }
-  
-  .cardBody {
-    padding: 16px;
-  }
-  
-  .section {
-    margin-bottom: 16px;
-  }
-  
-  .sectionTitle {
-    font-size: 13px;
-    margin-bottom: 8px;
-  }
-  
-  .tags {
-    gap: 6px;
-  }
-  
-  .roleTag,
-  .skillTag {
-    font-size: 12px;
-    padding: 4px 12px;
-  }
-  
-  .inviteButton {
-    padding: 10px 20px;
-    font-size: 14px;
-    border-radius: 30px;
-  }
-  
-  .emptyCard .avatar {
-    display: none;
-  }
-  
-  .emptyCard {
-    padding: 16px;
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-  }
-  
-  .unfilledText {
-    font-size: 14px;
-  }
-  
-  .emptyCard .username {
-    font-size: 12px;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .name {
-    font-size: 18px;
-  }
-  
-  .username {
-    font-size: 12px;
-  }
-  
-  .locationText {
-    font-size: 12px;
-  }
-  
-  .roleTag,
-  .skillTag {
-    font-size: 11px;
-    padding: 3px 10px;
-  }
-  
-  .inviteButton {
-    padding: 10px 16px;
-    font-size: 13px;
-  }
+.applyButton.appliedButton:disabled {
+  background: #6B7280;
 }

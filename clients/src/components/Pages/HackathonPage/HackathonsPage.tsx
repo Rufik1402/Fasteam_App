@@ -1,197 +1,274 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import HackathonCard from '../../features/HackathonCard/HackathonCard';
 import { fakeHackathons } from '../../../data/mockData';
-import type { Hackathon } from '../../../types';
 import styles from './HackathonPage.module.css';
-
-type TabType = 'все' | 'популярные' | 'для студентов';
+import FilterIcon from '../../../assets/icons/filter.svg';
 
 const HackathonsPage = () => {
-  const [hackathons] = useState<Hackathon[]>(fakeHackathons);
-  const [activeTab, setActiveTab] = useState<TabType>('все');
+  const [activeTab, setActiveTab] = useState<'все' | 'популярные' | 'регистрация скоро закроется'>('все');
+  const [showFilters, setShowFilters] = useState(false);
   
-  const [selectedRole, setSelectedRole] = useState('любые роли');
-  const [selectedFormat, setSelectedFormat] = useState('все форматы');
-  const [selectedComplexity, setSelectedComplexity] = useState('любая');
-  const [selectedDates, setSelectedDates] = useState('все даты');
-  const [selectedType, setSelectedType] = useState('все');
-  
-  const [isPopular, setIsPopular] = useState(false);
-  const [hasPrize, setHasPrize] = useState(false);
-  const [hasSpots, setHasSpots] = useState(false);
-  const [careerGrowth, setCareerGrowth] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedFormat, setSelectedFormat] = useState<string>('');
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [onlyWithPrize, setOnlyWithPrize] = useState(false);
   const [closingSoon, setClosingSoon] = useState(false);
+  const [popularOnly, setPopularOnly] = useState(false);
 
-  const filteredHackathons = hackathons.filter(hackathon => {
-    if (!hackathon.isActive) return false;
-    
-    if (activeTab === 'популярные' && hackathon.participants && hackathon.participants < 100) {
-      return false;
-    }
+  const roles = [    
+    "Design",
+    "Frontend",
+    "Backend",
+    "Team Lead",
+    "ML/AI",
+    "QA",
+    "DevOps"
+  ];
+  
+  const formats = [
+    { value: 'онлайн', label: 'онлайн' },
+    { value: 'офлайн', label: 'офлайн' },
+    { value: 'гибрид', label: 'гибридный' }
+  ];
+  
+  const dateRanges = [
+    { value: '', label: 'все даты' },
+    { value: 'week', label: 'на этой неделе' },
+    { value: 'month', label: 'в этом месяце' }
+  ];
 
-    if (selectedFormat !== 'все форматы' && hackathon.format !== selectedFormat) {
-      return false;
-    }
+  const toggleRole = (role: string) => {
+    setSelectedRoles(prev =>
+      prev.includes(role)
+        ? prev.filter(r => r !== role)
+        : [...prev, role]
+    );
+  };
 
-    if (hasPrize && !hackathon.prize) {
-      return false;
-    }
-    
-    return true;
-  });
+  const clearAllFilters = () => {
+    setSelectedRoles([]);
+    setSelectedFormat('');
+    setSelectedLevel('');
+    setSelectedDateRange('');
+    setOnlyWithPrize(false);
+    setClosingSoon(false);
+    setPopularOnly(false);
+  };
+
+  const getActiveFiltersCount = () => {
+    return selectedRoles.length + 
+      (selectedFormat ? 1 : 0) + 
+      (selectedLevel ? 1 : 0) +
+      (selectedDateRange ? 1 : 0) + 
+      (onlyWithPrize ? 1 : 0) + 
+      (closingSoon ? 1 : 0) +
+      (popularOnly ? 1 : 0);
+  };
+
+  const filteredHackathons = useMemo(() => {
+    return fakeHackathons.filter(hackathon => {
+      if (!hackathon.isActive) return false;
+      
+      if (activeTab === 'популярные' && hackathon.participants && hackathon.participants < 100) {
+        return false;
+      }
+      
+      if (activeTab === 'регистрация скоро закроется') {
+        if (!hackathon.registrationDeadline) return false;
+        const now = new Date();
+        const deadline = new Date(hackathon.registrationDeadline);
+        const diffHours = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60));
+        if (diffHours > 72) return false;
+      }
+      if (selectedRoles.length > 0 && hackathon.directions) {
+        const hasMatchingRole = selectedRoles.some(role => 
+          hackathon.directions?.some(dir => 
+            dir.toLowerCase().includes(role.toLowerCase())
+          )
+        );
+        if (!hasMatchingRole) return false;
+      }
+      if (selectedFormat && hackathon.format !== selectedFormat) {
+        return false;
+      }
+
+      if (selectedDateRange) {
+        const now = new Date();
+        const hackathonDate = new Date(hackathon.startDate);
+        const diffDays = Math.ceil((hackathonDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch (selectedDateRange) {
+          case 'week':
+            if (diffDays > 7) return false;
+            break;
+          case 'month':
+            if (diffDays > 30) return false;
+            break;
+        }
+      }
+      if (onlyWithPrize && !hackathon.prize) {
+        return false;
+      }
+      if (closingSoon && hackathon.registrationDeadline) {
+        const now = new Date();
+        const deadline = new Date(hackathon.registrationDeadline);
+        const diffHours = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60));
+        if (diffHours > 72) return false;
+      }
+
+      if (popularOnly && hackathon.participants && hackathon.participants < 100) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [activeTab, selectedRoles, selectedFormat, selectedDateRange, onlyWithPrize, closingSoon, popularOnly]);
 
   return (
     <div className={styles.container}>
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${activeTab === 'все' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('все')}
+      <div className={styles.header}>
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${activeTab === 'все' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('все')}
+          >
+            все
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'популярные' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('популярные')}
+          >
+            популярные
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'регистрация скоро закроется' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('регистрация скоро закроется')}
+          >
+            регистрация скоро закроется
+          </button>
+        </div>
+
+        <button 
+          className={styles.filterToggle}
+          onClick={() => setShowFilters(!showFilters)}
         >
-          все
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'популярные' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('популярные')}
-        >
-          популярные
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'для студентов' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('для студентов')}
-        >
-          для студентов
+          <img src={FilterIcon} alt="Фильтры" className={styles.filterIcon} />
+          Фильтры
+          {getActiveFiltersCount() > 0 && (
+            <span className={styles.filterCount}>
+              {getActiveFiltersCount()}
+            </span>
+          )}
         </button>
       </div>
 
-      <div className={styles.filtersBlock}>
-        <h3 className={styles.filtersTitle}>найти хакатон</h3>
-        
-        <div className={styles.filtersGrid}>
-          <div className={styles.filterItem}>
-            <label className={styles.filterLabel}>роли</label>
-            <select 
-              className={styles.filterSelect}
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
+      {showFilters && (
+        <div className={styles.filtersBlock}>
+          <div className={styles.filtersHeader}>
+            <h3 className={styles.filtersTitle}>Фильтры</h3>
+            <button 
+              className={styles.clearButton}
+              onClick={clearAllFilters}
             >
-              <option>любые роли</option>
-              <option>бэк</option>
-              <option>фронт</option>
-              <option>фулл стек</option>
-              <option>дизайн</option>
-              <option>аналитик</option>
-            </select>
+              Очистить все
+            </button>
           </div>
-
-          <div className={styles.filterItem}>
-            <label className={styles.filterLabel}>формат</label>
-            <select 
-              className={styles.filterSelect}
-              value={selectedFormat}
-              onChange={(e) => setSelectedFormat(e.target.value)}
-            >
-              <option>все форматы</option>
-              <option>онлайн</option>
-              <option>офлайн</option>
-              <option>гибрид</option>
-            </select>
-          </div>
-
-          <div className={styles.filterItem}>
-            <label className={styles.filterLabel}>сложность</label>
-            <select 
-              className={styles.filterSelect}
-              value={selectedComplexity}
-              onChange={(e) => setSelectedComplexity(e.target.value)}
-            >
-              <option>любая</option>
-              <option>новички</option>
-              <option>опытные</option>
-              <option>профессиональная</option>
-            </select>
-          </div>
-
-          <div className={styles.filterItem}>
-            <label className={styles.filterLabel}>даты проведения</label>
-            <select 
-              className={styles.filterSelect}
-              value={selectedDates}
-              onChange={(e) => setSelectedDates(e.target.value)}
-            >
-              <option>все даты</option>
-              <option>эта неделя</option>
-              <option>этот месяц</option>
-              <option>следующий месяц</option>
-            </select>
-          </div>
-
-          <div className={styles.filterItem}>
-            <label className={styles.filterLabel}>вид проведения</label>
-            <select 
-              className={styles.filterSelect}
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-            >
-              <option>все</option>
-              <option>AI/ML</option>
-              <option>финансовые</option>
-              <option>игровые</option>
-              <option>соц проекты</option>
-            </select>
+          
+          <div className={styles.filtersContent}>
+            <div className={styles.filterSection}>
+              <h4 className={styles.filterSectionTitle}>роли</h4>
+              <div className={styles.rolesGrid}>
+                {roles.map(role => (
+                  <button
+                    key={role}
+                    className={`${styles.roleButton} ${selectedRoles.includes(role) ? styles.roleButtonActive : ''}`}
+                    onClick={() => toggleRole(role)}
+                  >
+                    <div className={styles.roleButtonWrapper}>
+                      <div className={styles.roleCheckbox}></div>
+                      <span className={styles.roleText}>{role}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.filterSection}>
+              <h4 className={styles.filterSectionTitle}>формат</h4>
+              <div className={styles.formatGrid}>
+                <button
+                  className={`${styles.formatButton} ${!selectedFormat ? styles.formatButtonActive : ''}`}
+                  onClick={() => setSelectedFormat('')}
+                >
+                  <div className={styles.formatButtonWrapper}>
+                    <div className={styles.formatRadio}></div>
+                    <span className={styles.formatText}>все форматы</span>
+                  </div>
+                </button>
+                {formats.map(format => (
+                  <button
+                    key={format.value}
+                    className={`${styles.formatButton} ${selectedFormat === format.value ? styles.formatButtonActive : ''}`}
+                    onClick={() => setSelectedFormat(format.value)}
+                  >
+                    <div className={styles.formatButtonWrapper}>
+                      <div className={styles.formatRadio}></div>
+                      <span className={styles.formatText}>{format.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.filterSection}>
+              <h4 className={styles.filterSectionTitle}>даты проведения</h4>
+              <div className={styles.dateGrid}>
+                {dateRanges.map(range => (
+                  <button
+                    key={range.value}
+                    className={`${styles.dateButton} ${selectedDateRange === range.value ? styles.dateButtonActive : ''}`}
+                    onClick={() => setSelectedDateRange(range.value)}
+                  >
+                    <div className={styles.dateButtonWrapper}>
+                      <div className={styles.dateRadio}></div>
+                      <span className={styles.dateText}>{range.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className={styles.checkboxes}>
-          <label className={styles.checkbox}>
-            <input 
-              type="checkbox" 
-              checked={isPopular}
-              onChange={(e) => setIsPopular(e.target.checked)}
-            />
-            <span>популярные</span>
-          </label>
-          <label className={styles.checkbox}>
-            <input 
-              type="checkbox" 
-              checked={hasPrize}
-              onChange={(e) => setHasPrize(e.target.checked)}
-            />
-            <span>с призовым фондом</span>
-          </label>
-          <label className={styles.checkbox}>
-            <input 
-              type="checkbox" 
-              checked={hasSpots}
-              onChange={(e) => setHasSpots(e.target.checked)}
-            />
-            <span>есть свободные места</span>
-          </label>
-          <label className={styles.checkbox}>
-            <input 
-              type="checkbox" 
-              checked={careerGrowth}
-              onChange={(e) => setCareerGrowth(e.target.checked)}
-            />
-            <span>карьерный рост</span>
-          </label>
-          <label className={styles.checkbox}>
-            <input 
-              type="checkbox" 
-              checked={closingSoon}
-              onChange={(e) => setClosingSoon(e.target.checked)}
-            />
-            <span>регистрация скоро закроется</span>
-          </label>
-        </div>
-      </div>
+      )}
       
+      <div className={styles.resultsInfo}>
+        <span className={styles.resultsCount}>
+          Найдено хакатонов: {filteredHackathons.length}
+        </span>
+        {getActiveFiltersCount() > 0 && (
+          <button 
+            className={styles.resetButton}
+            onClick={clearAllFilters}
+          >
+            Сбросить фильтры
+          </button>
+        )}
+      </div>
+
       <div className={styles.hackathonsList}>
         {filteredHackathons.length > 0 ? (
           filteredHackathons.map(hackathon => (
             <HackathonCard key={hackathon.id} hackathon={hackathon} />
           ))
         ) : (
-          <p className={styles.noResults}>Нет доступных хакатонов</p>
+          <div className={styles.noResults}>
+            <p>Нет хакатонов, соответствующих выбранным фильтрам</p>
+            <button 
+              className={styles.noResultsButton}
+              onClick={clearAllFilters}
+            >
+              Показать все хакатоны
+            </button>
+          </div>
         )}
       </div>
     </div>

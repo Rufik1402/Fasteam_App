@@ -7,8 +7,9 @@ import ProfilePage from "./components/Pages/ProfilePage/ProfilePage";
 import HackathonsPage from "./components/Pages/HackathonPage/HackathonsPage";
 import ParticipantsPage from "./components/Pages/ParticipantsPage/ParticipantsPage";
 import TeamsPage from "./components/Pages/TeamPage/TeamsPage";
-import NotificationsPage from "./components/Pages/NotificationsPage";
+import NotificationsPage from "./components/Pages/NotificationsPage/NotificationsPage";
 import ProfileFormPage from "./components/Pages/ProfileFormPage/ProfileFormPage";
+import TeamJoinPage from "./components/Pages/TeamJoinPage/TeamJoinPage";
 
 
 const ProtectedLayout = () => {
@@ -28,6 +29,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/register" element={<ProfileFormPage />} />
+        <Route path="/team/join/:token" element={<TeamJoinPage />} />
         <Route path="/" element={<ProtectedLayout />}>
           <Route path="profile" element={<ProfilePage />} />
           <Route path="teams" element={<TeamsPage />} />

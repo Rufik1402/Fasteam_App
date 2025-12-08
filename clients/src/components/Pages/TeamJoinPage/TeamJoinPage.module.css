@@ -1,0 +1,306 @@
+@font-face {
+  font-family: "Involve";
+  src: url("../../../assets/fonts/Involve/Involve-Medium.ttf");
+  font-weight: 500;
+  font-style: medium;
+}
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-family: "Involve", sans-serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: #353232;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.teamInfo {
+  margin-bottom: 32px;
+}
+
+.teamName {
+  font-family: "Involve", sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: #8a61f1;
+  margin: 0 0 8px 0;
+}
+
+.hackathonName {
+  font-family: "Involve", sans-serif;
+  font-size: 18px;
+  color: #666;
+  margin: 0 0 24px 0;
+}
+
+.stats {
+  display: flex;
+  gap: 24px;
+  padding: 16px;
+  background: #f8f4ff;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statLabel {
+  font-family: "Involve", sans-serif;
+  font-size: 14px;
+  color: #666;
+}
+
+.statValue {
+  font-family: "Involve", sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: #353232;
+}
+
+.membersSection {
+  margin-bottom: 24px;
+}
+
+.membersTitle {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #353232;
+  margin: 0 0 12px 0;
+}
+
+.membersList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memberCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8f4ff;
+  border-radius: 12px;
+  border: 1px solid #ece3f2;
+}
+
+.memberAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8a61f1, #6b46c1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  font-family: "Involve", sans-serif;
+  flex-shrink: 0;
+}
+
+.memberInfo {
+  flex: 1;
+}
+
+.memberName {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #353232;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.captainBadge {
+  font-size: 13px;
+  color: #8a61f1;
+  font-weight: 400;
+}
+
+.memberRole {
+  font-family: "Involve", sans-serif;
+  font-size: 14px;
+  color: #8a61f1;
+  margin: 0;
+}
+
+.vacanciesSection {
+  margin-top: 24px;
+}
+
+.vacanciesTitle {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #353232;
+  margin: 0 0 12px 0;
+}
+
+.vacanciesTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vacancyTag {
+  padding: 8px 16px;
+  background: #fff9e6;
+  color: #8a6116;
+  border-radius: 10px;
+  font-family: "Involve", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.joinSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #353232;
+}
+
+.input {
+  padding: 12px 16px;
+  border: 2px solid #ece3f2;
+  border-radius: 12px;
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #8a61f1;
+}
+
+.joinButton {
+  padding: 16px 24px;
+  background: #8a61f1;
+  border: none;
+  border-radius: 12px;
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.joinButton:hover:not(:disabled) {
+  background: #7a51e1;
+  transform: translateY(-2px);
+}
+
+.joinButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.authMessage,
+.alreadyMemberMessage,
+.fullMessage {
+  text-align: center;
+  padding: 24px;
+  background: #f8f4ff;
+  border-radius: 12px;
+}
+
+.authMessage p,
+.alreadyMemberMessage p,
+.fullMessage p {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 16px 0;
+}
+
+.authButton,
+.profileButton,
+.backButton {
+  padding: 12px 24px;
+  background: #8a61f1;
+  border: none;
+  border-radius: 12px;
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.authButton:hover,
+.profileButton:hover,
+.backButton:hover {
+  background: #7a51e1;
+  transform: translateY(-2px);
+}
+
+.errorTitle {
+  font-family: "Involve", sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: #ff6b6b;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.errorText {
+  font-family: "Involve", sans-serif;
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 24px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .teamName {
+    font-size: 20px;
+  }
+}

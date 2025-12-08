@@ -1,161 +1,180 @@
-
 <template>
   <div class="admins-page">
+    <!-- Заголовок и поиск -->
+    <div class="page-header">
+      <h1>Администраторы</h1>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px">
-      <h1 style="margin: 0">Администраторы</h1>
-
-      <a-space>
-
+      <div class="header-actions">
         <a-input-search
             placeholder="Поиск по имени или email..."
             style="width: 300px"
             @search="handleSearch"
             v-model:value="searchQuery"
             allow-clear
+            class="admin-search"
         />
-
 
         <a-button
             type="primary"
             @click="showAddModal"
             size="large"
+            class="add-admin-btn"
         >
           <template #icon><PlusOutlined /></template>
           Добавить администратора
         </a-button>
-      </a-space>
+      </div>
     </div>
 
+    <!-- Таблица администраторов -->
+    <div class="admins-table-wrapper">
+      <a-card class="admins-card">
+        <a-table
+            :columns="columns"
+            :data-source="filteredAdmins"
+            :loading="loading"
+            :pagination="pagination"
+            row-key="id"
+            class="admins-table"
+        >
+          <!-- Слот для статуса -->
+          <template #status="{ record }">
+            <span class="status-badge" :class="`status-${record.status}`">
+              {{ getStatusText(record.status) }}
+            </span>
+          </template>
 
-    <a-card>
-      <a-table
-          :columns="columns"
-          :data-source="filteredAdmins"
-          :loading="loading"
-          :pagination="pagination"
-          row-key="id"
-      >
+          <!-- Слот для действий (три точки) -->
+          <template #action="{ record }">
+            <a-dropdown :trigger="['click']" class="actions-dropdown">
+              <button class="actions-btn">
+                <EllipsisOutlined />
+              </button>
+              <template #overlay>
+                <div class="actions-menu">
+                  <button class="action-item" @click="editAdmin(record)">
+                    <EditOutlined />
+                    <span>Редактировать</span>
+                  </button>
+                  <button
+                      class="action-item"
+                      @click="toggleStatus(record)"
+                      :disabled="record.role === 'superadmin' && currentUser.role !== 'superadmin'"
+                  >
+                    <SwapOutlined />
+                    <span>{{ record.status === 'active' ? 'Деактивировать' : 'Активировать' }}</span>
+                  </button>
+                  <button class="action-item" @click="resetPassword(record)">
+                    <KeyOutlined />
+                    <span>Сбросить пароль</span>
+                  </button>
+                  <div class="actions-divider"></div>
+                  <button
+                      class="action-item action-item--danger"
+                      @click="deleteAdmin(record)"
+                      :disabled="record.role === 'superadmin'"
+                  >
+                    <DeleteOutlined />
+                    <span>Удалить</span>
+                  </button>
+                </div>
+              </template>
+            </a-dropdown>
+          </template>
+        </a-table>
+      </a-card>
+    </div>
 
-        <template #status="{ record }">
-          <a-tag :color="getStatusColor(record.status)">
-            {{ getStatusText(record.status) }}
-          </a-tag>
-        </template>
-
-
-        <template #action="{ record }">
-          <a-dropdown :trigger="['click']">
-            <a-button type="text" size="small">
-              <EllipsisOutlined />
-            </a-button>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item @click="editAdmin(record)">
-                  <EditOutlined /> Редактировать
-                </a-menu-item>
-                <a-menu-item
-                    @click="toggleStatus(record)"
-                    :disabled="record.role === 'superadmin' && currentUser.role !== 'superadmin'"
-                >
-                  <SwapOutlined />
-                  {{ record.status === 'active' ? 'Деактивировать' : 'Активировать' }}
-                </a-menu-item>
-                <a-menu-item @click="resetPassword(record)">
-                  <KeyOutlined /> Сбросить пароль
-                </a-menu-item>
-                <a-menu-divider />
-                <a-menu-item
-                    danger
-                    @click="deleteAdmin(record)"
-                    :disabled="record.role === 'superadmin'"
-                >
-                  <DeleteOutlined /> Удалить
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </template>
-      </a-table>
-    </a-card>
-
-
+    <!-- Сообщение если нет администраторов -->
     <a-empty
         v-if="filteredAdmins.length === 0"
-        style="margin-top: 48px"
+        class="empty-state"
         description="Администраторы не найдены"
     >
       <template #image>
-        <UserOutlined style="font-size: 48px; color: #999" />
+        <UserOutlined class="empty-icon" />
       </template>
-      <a-button type="primary" @click="showAddModal">
+      <a-button type="primary" @click="showAddModal" class="add-admin-btn">
         Добавить нового администратора
       </a-button>
     </a-empty>
 
-
+    <!-- Модальное окно добавления/редактирования администратора -->
     <a-modal
         v-model:open="adminModalVisible"
         :title="editingAdmin ? 'Редактирование администратора' : 'Добавление администратора'"
         width="600px"
         @ok="handleSaveAdmin"
         @cancel="closeAdminModal"
+        class="admin-modal"
+        wrap-class-name="admin-modal-wrapper"
     >
+      <div class="modal-header-line"></div>
+
       <a-form
           ref="adminFormRef"
           :model="adminForm"
           :rules="adminFormRules"
           layout="vertical"
+          class="admin-form"
       >
         <a-row :gutter="24">
           <a-col :span="12">
-            <a-form-item label="ФИО" name="name" required>
+            <a-form-item label="ФИО" name="name" required class="form-item--purple">
               <a-input
                   v-model:value="adminForm.name"
                   placeholder="Алексей Петров"
+                  class="purple-input"
               />
             </a-form-item>
 
-            <a-form-item label="Email" name="email" required>
+            <a-form-item label="Email" name="email" required class="form-item--purple">
               <a-input
                   v-model:value="adminForm.email"
                   placeholder="alexey@itam-hackathon.ru"
                   type="email"
+                  class="purple-input"
               />
             </a-form-item>
 
-            <a-form-item label="Роль" name="role" required>
+            <a-form-item label="Роль" name="role" required class="form-item--purple">
               <a-select
                   v-model:value="adminForm.role"
                   placeholder="Выберите роль"
-                  style="width: 100%"
+                  class="purple-select"
                   :options="roleOptions"
               />
             </a-form-item>
           </a-col>
 
           <a-col :span="12">
-            <a-form-item label="Пароль" :name="editingAdmin ? 'password_optional' : 'password'"
-                         :required="!editingAdmin">
+            <a-form-item
+                :label="editingAdmin ? 'Пароль' : 'Пароль*'"
+                :name="editingAdmin ? 'password_optional' : 'password'"
+                :required="!editingAdmin"
+                class="form-item--purple"
+            >
               <a-input-password
                   v-model:value="adminForm.password"
                   placeholder="Введите пароль"
                   :disabled="editingAdmin"
+                  class="purple-input"
               />
-              <div v-if="editingAdmin" style="color: #999; font-size: 12px; margin-top: 4px">
+              <div v-if="editingAdmin" class="password-hint">
                 Оставьте пустым, чтобы не менять пароль
               </div>
             </a-form-item>
 
-            <a-form-item label="Телефон" name="phone">
+            <a-form-item label="Телефон" name="phone" class="form-item--purple">
               <a-input
                   v-model:value="adminForm.phone"
                   placeholder="+7 (999) 123-45-67"
+                  class="purple-input"
               />
             </a-form-item>
 
-            <a-form-item label="Статус" name="status">
-              <a-select v-model:value="adminForm.status" style="width: 100%">
+            <a-form-item label="Статус" name="status" class="form-item--purple">
+              <a-select v-model:value="adminForm.status" class="purple-select">
                 <a-select-option value="active">Активен</a-select-option>
                 <a-select-option value="inactive">Неактивен</a-select-option>
               </a-select>
@@ -163,11 +182,12 @@
           </a-col>
         </a-row>
 
-        <a-form-item label="Примечания" name="notes">
+        <a-form-item label="Примечания" name="notes" class="form-item--purple">
           <a-textarea
               v-model:value="adminForm.notes"
               placeholder="Дополнительная информация..."
               :rows="2"
+              class="purple-textarea"
           />
         </a-form-item>
       </a-form>
@@ -189,7 +209,7 @@ import {
   UserOutlined
 } from '@ant-design/icons-vue'
 
-
+// Все остальное остается БЕЗ ИЗМЕНЕНИЙ!
 interface Admin {
   id: string
   name: string
@@ -207,19 +227,16 @@ interface CurrentUser {
   id: string
 }
 
-
 const loading = ref(false)
 const searchQuery = ref('')
 const adminModalVisible = ref(false)
 const editingAdmin = ref<Admin | null>(null)
 const adminFormRef = ref()
 
-
 const currentUser = ref<CurrentUser>({
   role: 'superadmin',
   id: '1'
 })
-
 
 const admins = ref<Admin[]>([
   {
@@ -268,7 +285,6 @@ const admins = ref<Admin[]>([
   }
 ])
 
-
 const adminForm = reactive({
   name: '',
   email: '',
@@ -300,7 +316,6 @@ const adminFormRules = {
   ]
 }
 
-
 const roleOptions = [
   { label: 'Супер-админ', value: 'superadmin' },
   { label: 'Организатор', value: 'organizer' },
@@ -315,7 +330,6 @@ const pagination = reactive({
   showSizeChanger: true,
   pageSizeOptions: ['10', '20', '50']
 })
-
 
 const columns: TableProps['columns'] = [
   {
@@ -388,7 +402,6 @@ const columns: TableProps['columns'] = [
   }
 ]
 
-
 const filteredAdmins = computed(() => {
   if (!searchQuery.value) return admins.value
 
@@ -399,7 +412,6 @@ const filteredAdmins = computed(() => {
       admin.phone?.toLowerCase().includes(query)
   )
 })
-
 
 const handleSearch = () => {
   pagination.current = 1
@@ -427,7 +439,7 @@ const editAdmin = (admin: Admin) => {
   adminForm.phone = admin.phone || ''
   adminForm.status = admin.status
   adminForm.notes = admin.notes || ''
-  adminForm.password = '' // Пароль не показываем
+  adminForm.password = ''
   adminModalVisible.value = true
 }
 
@@ -451,7 +463,6 @@ const handleSaveAdmin = async () => {
     await adminFormRef.value.validate()
 
     if (editingAdmin.value) {
-      // Обновление
       const index = admins.value.findIndex(a => a.id === editingAdmin.value!.id)
       if (index !== -1) {
         const updatedAdmin = {
@@ -464,16 +475,14 @@ const handleSaveAdmin = async () => {
           notes: adminForm.notes
         }
 
-        // Если введен новый пароль
         if (adminForm.password) {
-          // Здесь логика обновления пароля
+          // логика обновления пароля
         }
 
         admins.value[index] = updatedAdmin
       }
       message.success('Администратор обновлен')
     } else {
-
       const newAdmin: Admin = {
         id: Date.now().toString(),
         name: adminForm.name,
@@ -547,21 +556,477 @@ const deleteAdmin = (admin: Admin) => {
 
 onMounted(() => {
   pagination.total = admins.value.length
-  // Здесь можно загрузить текущего пользователя из auth store
 })
 </script>
 
 <style scoped>
 .admins-page {
   padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-:deep(.ant-table-cell) {
-  vertical-align: top;
+/* Заголовок */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-:deep(.ant-tag) {
-  margin-right: 4px;
-  margin-bottom: 4px;
+.page-header h1 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Кнопка "Добавить администратора" */
+.add-admin-btn {
+  background: #68507E;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(104, 80, 126, 0.3) !important;
+}
+
+.add-admin-btn:hover {
+  background: linear-gradient(135deg, #8A6FB0, #B298C5) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(104, 80, 126, 0.4) !important;
+}
+
+.add-admin-btn:active {
+  transform: translateY(0) !important;
+}
+
+/* Поиск */
+.admin-search :deep(.ant-input) {
+  border: 2px solid #E5E7EB !important;
+  border-radius: 10px !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-search :deep(.ant-input:hover) {
+  border-color: #B298C5 !important;
+}
+
+.admin-search :deep(.ant-input:focus) {
+  border-color: #68507E !important;
+  box-shadow: 0 0 0 2px rgba(104, 80, 126, 0.1) !important;
+}
+
+.admin-search :deep(.ant-input-search-button) {
+  background: #68507E !important;
+  border-color: #68507E !important;
+  border-radius: 0 10px 10px 0 !important;
+}
+
+.admin-search :deep(.ant-input-search-button:hover) {
+  background: #8A6FB0 !important;
+  border-color: #8A6FB0 !important;
+}
+
+/* Карточка с таблицей */
+.admins-card {
+  border: 2px solid #E5E7EB !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.admins-table-wrapper {
+  margin-bottom: 32px;
+}
+
+/* Бейджи статусов */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-active {
+  background: #D1FAE5;
+
+}
+
+.status-inactive {
+  background: #FEE2E2;
+
+}
+
+/* Кнопка с тремя точками */
+.actions-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F9F5FF;
+  border: 2px solid #D1C4E9;
+  border-radius: 10px;
+  color: #68507E;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+}
+
+.actions-btn:hover {
+  background: #68507E;
+  color: white;
+  border-color: #68507E;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(104, 80, 126, 0.2);
+}
+
+/* Меню действий */
+.actions-menu {
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #68507E;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  min-width: 220px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.action-item:hover {
+  background: #F9F5FF;
+  color: #68507E;
+  transform: translateX(4px);
+}
+
+.action-item--danger {
+  color: #EF4444;
+}
+
+.action-item--danger:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.action-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action-item:disabled:hover {
+  background: transparent;
+  color: #111827;
+}
+
+.actions-divider {
+  height: 1px;
+  background: #E5E7EB;
+  margin: 8px 0;
+}
+
+.action-item :deep(.anticon) {
+  font-size: 16px;
+  width: 20px;
+}
+
+/* Сообщение если нет администраторов */
+.empty-state {
+  margin-top: 48px;
+  padding: 60px 24px;
+  background: #F9F5FF;
+  border-radius: 16px;
+  border: 2px dashed #D1C4E9;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: #B298C5;
+  margin-bottom: 20px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .header-actions :deep(.ant-input-search) {
+    width: 100% !important;
+  }
+
+  .header-actions :deep(.ant-btn) {
+    width: 100%;
+  }
+
+  .admins-table {
+    overflow-x: auto;
+  }
+}
+</style>
+
+<style>
+/* Стили для таблицы */
+.admins-table .ant-table {
+  border-radius: 12px;
+}
+
+.admins-table .ant-table-thead > tr > th {
+  background: #68507E !important;
+  color: white !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+  border-bottom: none !important;
+  padding: 16px !important;
+}
+
+.admins-table .ant-table-thead > tr > th:first-child {
+  border-radius: 12px 0 0 0 !important;
+}
+
+.admins-table .ant-table-thead > tr > th:last-child {
+  border-radius: 0 12px 0 0 !important;
+}
+
+.admins-table .ant-table-tbody > tr > td {
+  padding: 16px !important;
+  border-bottom: 1px solid #F3F4F6 !important;
+  color: #374151;
+  font-weight: 500;
+}
+
+.admins-table .ant-table-tbody > tr:hover > td {
+  background: #F9F5FF !important;
+}
+
+.admins-table .ant-table-tbody > tr:nth-child(even) {
+  background: #F8FAFC;
+}
+
+.admins-table .ant-table-tbody > tr:nth-child(even):hover > td {
+  background: #F9F5FF !important;
+}
+
+/* Фильтры таблицы */
+.admins-table .ant-table-filter-trigger {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.admins-table .ant-table-filter-trigger:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Пагинация */
+.admins-table .ant-pagination-item {
+  border: 2px solid #E5E7EB !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+}
+
+.admins-table .ant-pagination-item:hover {
+  border-color: #B298C5 !important;
+  color: #68507E;
+}
+
+.admins-table .ant-pagination-item-active {
+  background: #68507E !important;
+  border-color: #68507E !important;
+  color: white !important;
+}
+
+.admins-table .ant-pagination-item-active:hover {
+  background: #8A6FB0 !important;
+  border-color: #8A6FB0 !important;
+}
+
+.admins-table .ant-pagination-prev .ant-pagination-item-link,
+.admins-table .ant-pagination-next .ant-pagination-item-link {
+  border: 2px solid #E5E7EB !important;
+  border-radius: 8px !important;
+}
+
+.admins-table .ant-pagination-prev .ant-pagination-item-link:hover,
+.admins-table .ant-pagination-next .ant-pagination-item-link:hover {
+  border-color: #B298C5 !important;
+  color: #68507E;
+}
+
+/* Модальное окно */
+.admin-modal-wrapper .ant-modal {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.admin-modal .ant-modal-content {
+  border-radius: 20px;
+  border: 2px solid #68507E;
+  overflow: hidden;
+}
+
+.admin-modal .ant-modal-header {
+  background: #68507E;
+  border-radius: 18px 18px 0 0;
+  padding: 24px;
+  margin-bottom: 0;
+}
+
+.admin-modal .ant-modal-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.admin-modal .ant-modal-close {
+  color: white;
+}
+
+.admin-modal .ant-modal-close:hover {
+  color: #B298C5;
+}
+
+.admin-modal .ant-modal-body {
+  padding: 0 32px 32px 32px;
+}
+
+/* Линия под заголовком */
+.modal-header-line {
+  height: 4px;
+  background: linear-gradient(90deg, #68507E, #B298C5);
+  margin-bottom: 32px;
+  border-radius: 2px;
+}
+
+/* Форма */
+.admin-form {
+  padding-top: 16px;
+}
+
+.form-item--purple .ant-form-item-label > label {
+  color: #68507E !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-item--purple .ant-form-item-label > label::after {
+  content: '' !important;
+}
+
+.form-item--purple .ant-form-item-label > label.ant-form-item-required::before {
+  display: none !important;
+}
+
+.form-item--purple .ant-form-item-label > label.ant-form-item-required::after {
+  content: '*' !important;
+  color: #FF4757;
+  margin-left: 4px;
+}
+
+/* Инпуты */
+.purple-input,
+.purple-textarea,
+.purple-select {
+  border: 2px solid #E5E7EB !important;
+  border-radius: 10px !important;
+  transition: all 0.3s ease !important;
+}
+
+.purple-input:hover,
+.purple-textarea:hover,
+.purple-select:hover :deep(.ant-select-selector) {
+  border-color: #B298C5 !important;
+}
+
+.purple-input:focus,
+.purple-textarea:focus,
+.purple-select-focused :deep(.ant-select-selector) {
+  border-color: #68507E !important;
+  box-shadow: 0 0 0 2px rgba(104, 80, 126, 0.1) !important;
+}
+
+.purple-select :deep(.ant-select-selector) {
+  border-radius: 10px !important;
+}
+
+/* Подсказка для пароля */
+.password-hint {
+  color: #6B7280;
+  font-size: 12px;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* Кнопки в модалке */
+.admin-modal .ant-modal-footer {
+  padding: 20px 32px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.admin-modal .ant-btn-default {
+  border: 2px solid #E5E7EB !important;
+  color: #6B7280 !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  padding: 8px 24px;
+  height: 44px;
+}
+
+.admin-modal .ant-btn-primary {
+  background: linear-gradient(135deg, #68507E, #8A6FB0) !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  padding: 8px 24px;
+  height: 44px;
+  transition: all 0.3s ease !important;
+}
+
+.admin-modal .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #8A6FB0, #B298C5) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(104, 80, 126, 0.3);
+}
+
+.admin-modal .ant-btn-primary:active {
+  transform: translateY(0);
 }
 </style>

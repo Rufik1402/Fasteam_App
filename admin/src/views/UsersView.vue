@@ -1,187 +1,173 @@
-
 <template>
   <div class="users-page">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px">
-      <h1 style="margin: 0">Участники</h1>
+    <!-- Заголовок и поиск -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Участники</h1>
+        <div class="subtitle">Управление всеми участниками платформы</div>
+      </div>
 
-      <a-space>
+      <div class="header-right">
         <a-input-search
             placeholder="Поиск по ФИО, ID или username..."
             style="width: 300px"
             @search="handleSearch"
             v-model:value="searchQuery"
             allow-clear
+            class="custom-search"
+            size="large"
         />
 
-        <a-button @click="exportCSV">
-          <template #icon><ExportOutlined /></template>
-          Экспорт CSV
-        </a-button>
+        <div class="header-buttons">
+          <a-button @click="exportCSV" class="export-btn">
+            <template #icon><ExportOutlined /></template>
+            Экспорт CSV
+          </a-button>
 
-        <a-button type="primary" @click="showAssignModal">
-          <template #icon><UserAddOutlined /></template>
-          Распределить выбранных
-        </a-button>
-      </a-space>
+          <a-button
+              type="primary"
+              @click="showAssignModal"
+              class="assign-btn"
+              :disabled="selectedUsers.length === 0"
+          >
+            <template #icon><UserAddOutlined /></template>
+            Распределить выбранных
+          </a-button>
+        </div>
+      </div>
     </div>
 
+    <!-- Фильтры -->
+    <div class="filters-section">
+      <div class="filter-buttons-container">
+        <div class="filter-group">
+          <span class="filter-label">Роль:</span>
+          <div class="filter-options">
+            <button
+                v-for="roleOption in roleOptions"
+                :key="roleOption.value"
+                @click="toggleRoleFilter(roleOption.value)"
+                class="filter-button"
+                :class="{ active: filters.role === roleOption.value }"
+            >
+              {{ roleOption.label }}
+            </button>
+          </div>
+        </div>
 
-    <a-card style="margin-top: 16px; margin-bottom: 16px">
-      <a-form layout="inline" :model="filters">
+        <div class="filter-group">
+          <span class="filter-label">Статус команды:</span>
+          <div class="filter-options">
+            <button
+                v-for="teamOption in teamOptions"
+                :key="teamOption.value"
+                @click="toggleTeamFilter(teamOption.value)"
+                class="filter-button"
+                :class="{ active: filters.hasTeam === teamOption.value }"
+            >
+              {{ teamOption.label }}
+            </button>
+          </div>
+        </div>
 
-        <a-form-item label="Роль">
-          <a-select
-              v-model:value="filters.role"
-              placeholder="Все роли"
-              style="width: 150px"
-              allow-clear
-              @change="loadUsers"
-          >
-            <a-select-option value="frontend">Frontend</a-select-option>
-            <a-select-option value="backend">Backend</a-select-option>
-            <a-select-option value="fullstack">Fullstack</a-select-option>
-            <a-select-option value="designer">Designer</a-select-option>
-            <a-select-option value="mobile">Mobile</a-select-option>
-          </a-select>
-        </a-form-item>
+        <button @click="resetFilters" class="reset-btn">
+          <reload-outlined />
+          Сбросить
+        </button>
+      </div>
+    </div>
 
-        <a-form-item label="Статус команды">
-          <a-select
-              v-model:value="filters.hasTeam"
-              placeholder="Все"
-              style="width: 150px"
-              allow-clear
-              @change="loadUsers"
-          >
-            <a-select-option value="has_team">В команде</a-select-option>
-            <a-select-option value="no_team">Без команды</a-select-option>
-          </a-select>
-        </a-form-item>
+    <!-- Чекбоксы выбора -->
+    <div v-if="filteredUsers.length > 0" class="selection-bar">
+      <div class="selection-info">
+        <a-checkbox
+            :indeterminate="isIndeterminate"
+            :checked="isAllSelected"
+            @change="toggleSelectAll"
+        >
+          Выбрано: {{ selectedUsers.length }} участников
+        </a-checkbox>
+      </div>
 
-        <a-form-item>
-          <a-button @click="resetFilters">
-            <template #icon><ReloadOutlined /></template>
-            Сбросить
-          </a-button>
-        </a-form-item>
-      </a-form>
-    </a-card>
+      <div class="selection-actions" v-if="selectedUsers.length > 0">
+        <span class="selected-count">{{ selectedUsers.length }} выбрано</span>
+        <a-button size="small" @click="clearSelection">
+          Очистить
+        </a-button>
+      </div>
+    </div>
 
-
-    <a-card>
-      <a-table
-          :columns="columns"
-          :data-source="filteredUsers"
-          :row-selection="rowSelection"
-          :loading="loading"
-          :pagination="pagination"
-          @change="handleTableChange"
-          row-key="id"
+    <!-- Карточки участников -->
+    <div v-if="filteredUsers.length > 0" class="users-grid">
+      <div
+          v-for="user in filteredUsers"
+          :key="user.id"
+          class="user-item"
+          :class="{ selected: selectedUserIds.includes(user.id) }"
+          @click="toggleUserSelection(user.id)"
       >
+        <div class="selection-checkbox">
+          <a-checkbox
+              :checked="selectedUserIds.includes(user.id)"
+              @click.stop
+              @change="toggleUserSelection(user.id)"
+          />
+        </div>
 
-        <template #skills="{ record }">
-          <a-tag
-              v-for="skill in record.skills.slice(0, 3)"
-              :key="skill"
-              color="blue"
-              style="margin-bottom: 4px"
-          >
-            {{ skill }}
-          </a-tag>
-          <a-tag v-if="record.skills.length > 3" color="default">
-            +{{ record.skills.length - 3 }}
-          </a-tag>
-        </template>
+        <UserCard
+            :user="user"
+            @view="viewProfile(user)"
+            @assign="assignToTeam(user)"
+            @delete="deleteUser(user)"
+        />
+      </div>
+    </div>
 
+    <!-- Пустое состояние -->
+    <div v-else class="empty-state">
+      <div class="empty-content">
+        <UserOutlined style="font-size: 64px; color: #d9d9d9" />
+        <h3>Участники не найдены</h3>
+        <p>Попробуйте изменить параметры поиска</p>
+      </div>
+    </div>
 
-        <template #team="{ record }">
-          <span v-if="record.teamName">
-            <a-tag color="green">{{ record.teamName }}</a-tag>
-            <div style="font-size: 12px; color: #999">
-              {{ record.teamMembers }}/{{ record.teamSize }} чел.
-            </div>
-          </span>
-          <a-tag v-else color="red">Без команды</a-tag>
-        </template>
-
-
-        <template #action="{ record }">
-          <a-space direction="vertical" size="small">
-            <a-button
-                size="small"
-                type="link"
-                @click="viewProfile(record)"
-                style="padding: 0"
-            >
-              <EyeOutlined /> Профиль
-            </a-button>
-
-            <a-button
-                size="small"
-                type="link"
-                :disabled="!!record.teamId"
-                @click="assignToTeam(record)"
-                style="padding: 0"
-            >
-              <TeamOutlined />
-              {{ record.teamId ? 'В команде' : 'Распределить' }}
-            </a-button>
-
-            <a-button
-                size="small"
-                type="link"
-                danger
-                @click="deleteUser(record)"
-                style="padding: 0"
-            >
-              <DeleteOutlined /> Удалить
-            </a-button>
-          </a-space>
-        </template>
-      </a-table>
-    </a-card>
-
-
-    <a-empty
-        v-if="filteredUsers.length === 0"
-        style="margin-top: 48px"
-        description="Участники не найдены"
-    >
-      <template #image>
-        <UserOutlined style="font-size: 48px; color: #999" />
-      </template>
-    </a-empty>
-
-
+    <!-- Модалка распределения -->
     <a-modal
         v-model:open="assignModalVisible"
         title="Распределение участников по командам"
         @ok="handleAssign"
         @cancel="assignModalVisible = false"
+        :ok-button-props="{ disabled: !assignTeamId }"
+        class="assign-modal"
     >
-      <p>Выбрано участников: {{ selectedRowKeys.length }}</p>
+      <div class="assign-modal-content">
+        <div class="assign-info">
+          <div class="selected-count-badge">
+            Выбрано участников: {{ selectedUsers.length }}
+          </div>
 
-      <a-form layout="vertical">
-        <a-form-item label="Выберите команду">
-          <a-select
-              v-model:value="assignTeamId"
-              placeholder="Выберите команду"
-              style="width: 100%"
-          >
-            <a-select-option v-for="team in availableTeams" :key="team.id" :value="team.id">
-              {{ team.name }} ({{ team.members.length }}/{{ team.maxSize }})
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+          <div v-if="selectedUsersWithTeam.length > 0" class="warning-alert">
+            <exclamation-circle-outlined />
+            <span>{{ selectedUsersWithTeam.length }} участников уже состоят в командах</span>
+          </div>
+        </div>
 
-        <a-alert
-            v-if="selectedUsersWithTeam.length > 0"
-            type="warning"
-            message="Некоторые выбранные участники уже в командах"
-            :description="`${selectedUsersWithTeam.length} участников уже состоят в командах`"
-            style="margin-bottom: 16px"
-        />
-      </a-form>
+        <a-form layout="vertical">
+          <a-form-item label="Выберите команду" required>
+            <a-select
+                v-model:value="assignTeamId"
+                placeholder="Выберите команду"
+                style="width: 100%"
+                size="large"
+            >
+              <a-select-option v-for="team in availableTeams" :key="team.id" :value="team.id">
+                {{ team.name }} ({{ team.members.length }}/{{ team.maxSize }})
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-form>
+      </div>
     </a-modal>
   </div>
 </template>
@@ -192,13 +178,11 @@ import {
   ExportOutlined,
   UserAddOutlined,
   ReloadOutlined,
-  EyeOutlined,
-  TeamOutlined,
-  DeleteOutlined,
-  UserOutlined
+  UserOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons-vue'
 import { message, Modal } from 'ant-design-vue'
-import type { TableProps } from 'ant-design-vue'
+import UserCard from '../components/UserCard.vue'
 
 // Типы
 interface User {
@@ -226,98 +210,34 @@ interface FilterParams {
 
 // Состояние
 const loading = ref(false)
-const searchQuery = ref('') // <-- ДОБАВЛЕНО ПОИСК
+const searchQuery = ref('')
 const users = ref<User[]>([])
-const hackathons = ref<any[]>([])
-const selectedRowKeys = ref<string[]>([])
+const selectedUserIds = ref<string[]>([])
 const assignModalVisible = ref(false)
 const assignTeamId = ref<string>()
 
 // Фильтры
-const filters = reactive<FilterParams>({
-  hackathonId: undefined,
-  role: undefined,
-  hasTeam: undefined
-})
+const filters = reactive<FilterParams>({})
 
-// Пагинация
-const pagination = reactive({
-  current: 1,
-  pageSize: 10,
-  total: 0,
-  showSizeChanger: true,
-  pageSizeOptions: ['10', '20', '50', '100']
-})
-
-// Колонки таблицы
-const columns: TableProps['columns'] = [
-  {
-    title: 'ID',
-    dataIndex: 'telegramId',
-    width: 100,
-    ellipsis: true
-  },
-  {
-    title: 'Имя',
-    dataIndex: 'firstName',
-    width: 150,
-    render: (text: string, record: User) =>
-        `${record.firstName} ${record.lastName}`
-  },
-  {
-    title: 'Username',
-    dataIndex: 'username',
-    width: 120,
-    ellipsis: true
-  },
-  {
-    title: 'Роль',
-    dataIndex: 'role',
-    width: 120,
-    filters: [
-      { text: 'Frontend', value: 'frontend' },
-      { text: 'Backend', value: 'backend' },
-      { text: 'Fullstack', value: 'fullstack' },
-      { text: 'Designer', value: 'designer' }
-    ],
-    onFilter: (value: string, record: User) => record.role === value
-  },
-  {
-    title: 'Опыт',
-    dataIndex: 'experience',
-    width: 100,
-    filters: [
-      { text: 'Junior', value: 'junior' },
-      { text: 'Middle', value: 'middle' },
-      { text: 'Senior', value: 'senior' }
-    ],
-    onFilter: (value: string, record: User) => record.experience === value
-  },
-  {
-    title: 'Навыки',
-    key: 'skills',
-    slots: { customRender: 'skills' },
-    width: 200
-  },
-  {
-    title: 'Команда',
-    key: 'team',
-    slots: { customRender: 'team' },
-    width: 150
-  },
-  {
-    title: 'Действия',
-    key: 'action',
-    slots: { customRender: 'action' },
-    width: 150,
-    fixed: 'right' as const
-  }
+// Опции фильтров
+const roleOptions = [
+  { value: 'frontend', label: 'Frontend' },
+  { value: 'backend', label: 'Backend' },
+  { value: 'fullstack', label: 'Fullstack' },
+  { value: 'designer', label: 'Designer' },
+  { value: 'mobile', label: 'Mobile' }
 ]
 
-// Отфильтрованные пользователи с учетом поиска
+const teamOptions = [
+  { value: 'has_team', label: 'В команде' },
+  { value: 'no_team', label: 'Без команды' }
+]
+
+// Вычисляемые свойства
 const filteredUsers = computed(() => {
   let result = [...users.value]
 
+  // Поиск
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(user =>
@@ -328,15 +248,12 @@ const filteredUsers = computed(() => {
     )
   }
 
-
-  if (filters.hackathonId) {
-    result = result.filter(user => user.hackathonId === filters.hackathonId)
-  }
-
+  // Фильтр по роли
   if (filters.role) {
     result = result.filter(user => user.role === filters.role)
   }
 
+  // Фильтр по команде
   if (filters.hasTeam === 'has_team') {
     result = result.filter(user => user.teamId)
   } else if (filters.hasTeam === 'no_team') {
@@ -346,37 +263,37 @@ const filteredUsers = computed(() => {
   return result
 })
 
-// Выбор строк в таблице
-const rowSelection = computed(() => ({
-  selectedRowKeys: selectedRowKeys.value,
-  onChange: (keys: string[]) => {
-    selectedRowKeys.value = keys
-  }
-}))
-
-// Участники, которые уже в командах (из выбранных)
-const selectedUsersWithTeam = computed(() => {
-  return users.value.filter(user =>
-      selectedRowKeys.value.includes(user.id) && user.teamId
-  )
+const selectedUsers = computed(() => {
+  return users.value.filter(user => selectedUserIds.value.includes(user.id))
 })
 
-// Доступные команды для распределения
+const selectedUsersWithTeam = computed(() => {
+  return selectedUsers.value.filter(user => user.teamId)
+})
+
 const availableTeams = computed(() => {
-  // Здесь должна быть логика получения команд
-  // Пока заглушка
+  // Заглушка
   return [
     { id: 'team1', name: 'Хакеры', members: [1, 2], maxSize: 4 },
     { id: 'team2', name: 'Кодеры', members: [1], maxSize: 5 }
   ]
 })
 
+const isAllSelected = computed(() => {
+  return filteredUsers.value.length > 0 &&
+      selectedUserIds.value.length === filteredUsers.value.length
+})
+
+const isIndeterminate = computed(() => {
+  return selectedUserIds.value.length > 0 &&
+      selectedUserIds.value.length < filteredUsers.value.length
+})
+
 // Методы
 const loadUsers = async () => {
   loading.value = true
   try {
-    // Здесь будет реальный запрос к API
-    // Заглушка с тестовыми данными
+    // Тестовые данные
     users.value = [
       {
         id: '1',
@@ -386,7 +303,7 @@ const loadUsers = async () => {
         username: 'ivan_petrov',
         role: 'frontend',
         experience: 'middle',
-        skills: ['React', 'TypeScript', 'UI/UX'],
+        skills: ['React', 'TypeScript', 'UI/UX', 'Figma'],
         hackathonId: 'hack1',
         teamId: 'team1',
         teamName: 'Хакеры',
@@ -401,10 +318,9 @@ const loadUsers = async () => {
         username: 'anna_sidorova',
         role: 'backend',
         experience: 'junior',
-        skills: ['Node.js', 'Python', 'PostgreSQL'],
+        skills: ['Node.js', 'Python', 'PostgreSQL', 'Docker'],
         hackathonId: 'hack1',
-        teamId: undefined,
-        teamName: undefined
+        teamId: undefined
       },
       {
         id: '3',
@@ -414,15 +330,26 @@ const loadUsers = async () => {
         username: 'dmitry_smirnov',
         role: 'designer',
         experience: 'senior',
-        skills: ['Figma', 'UI/UX', 'Adobe Creative Suite'],
+        skills: ['Figma', 'UI/UX', 'Adobe Creative Suite', 'Prototyping'],
         hackathonId: 'hack1',
         teamId: 'team2',
         teamName: 'Кодеры',
         teamMembers: 2,
         teamSize: 5
+      },
+      {
+        id: '4',
+        telegramId: '901234',
+        firstName: 'Александр',
+        lastName: 'Парадеевич',
+        username: 'alex_paradeevich',
+        role: 'fullstack',
+        experience: 'middle',
+        skills: ['Python', 'Django', 'Vue.js', 'PostgreSQL'],
+        hackathonId: 'hack1',
+        teamId: undefined
       }
     ]
-    pagination.total = users.value.length
   } catch (error) {
     message.error('Ошибка при загрузке участников')
   } finally {
@@ -430,37 +357,44 @@ const loadUsers = async () => {
   }
 }
 
-const loadHackathons = async () => {
-  try {
-    // Заглушка
-    hackathons.value = [
-      { id: 'hack1', name: 'ITAM AI Hack 2024' },
-      { id: 'hack2', name: 'Blockchain Challenge' }
-    ]
-  } catch (error) {
-    message.error('Ошибка при загрузке хакатонов')
-  }
+const toggleRoleFilter = (role: string) => {
+  filters.role = filters.role === role ? undefined : role
 }
 
-// Обработка поиска
-const handleSearch = () => {
-  // Поиск уже реактивный через computed filteredUsers
-  // Просто сбрасываем пагинацию на первую страницу
-  pagination.current = 1
+const toggleTeamFilter = (hasTeam: string) => {
+  filters.hasTeam = filters.hasTeam === hasTeam ? undefined : hasTeam
 }
 
 const resetFilters = () => {
-  Object.keys(filters).forEach(key => {
-    filters[key as keyof FilterParams] = undefined
-  })
+  filters.role = undefined
+  filters.hasTeam = undefined
   searchQuery.value = ''
-  loadUsers()
+  selectedUserIds.value = []
 }
 
-const handleTableChange: TableProps['onChange'] = (pag) => {
-  pagination.current = pag.current!
-  pagination.pageSize = pag.pageSize!
-  loadUsers()
+const handleSearch = () => {
+  selectedUserIds.value = []
+}
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedUserIds.value = []
+  } else {
+    selectedUserIds.value = filteredUsers.value.map(user => user.id)
+  }
+}
+
+const toggleUserSelection = (userId: string) => {
+  const index = selectedUserIds.value.indexOf(userId)
+  if (index > -1) {
+    selectedUserIds.value.splice(index, 1)
+  } else {
+    selectedUserIds.value.push(userId)
+  }
+}
+
+const clearSelection = () => {
+  selectedUserIds.value = []
 }
 
 const viewProfile = (user: User) => {
@@ -468,12 +402,16 @@ const viewProfile = (user: User) => {
 }
 
 const assignToTeam = (user: User) => {
-  selectedRowKeys.value = [user.id]
+  if (user.teamId) {
+    message.warning(`${user.firstName} уже состоит в команде`)
+    return
+  }
+  selectedUserIds.value = [user.id]
   showAssignModal()
 }
 
 const showAssignModal = () => {
-  if (selectedRowKeys.value.length === 0) {
+  if (selectedUserIds.value.length === 0) {
     message.warning('Выберите хотя бы одного участника')
     return
   }
@@ -487,10 +425,11 @@ const handleAssign = async () => {
   }
 
   try {
-    // Здесь запрос к API для распределения
     message.success(`Участники распределены в команду`)
     assignModalVisible.value = false
-    loadUsers() // Перезагружаем данные
+    assignTeamId.value = undefined
+    selectedUserIds.value = []
+    loadUsers()
   } catch (error) {
     message.error('Ошибка при распределении')
   }
@@ -505,7 +444,6 @@ const deleteUser = (user: User) => {
     cancelText: 'Отмена',
     onOk: async () => {
       try {
-        // Здесь запрос к API для удаления
         users.value = users.value.filter(u => u.id !== user.id)
         message.success('Участник удален')
       } catch (error) {
@@ -516,28 +454,366 @@ const deleteUser = (user: User) => {
 }
 
 const exportCSV = () => {
-  // Логика экспорта в CSV
-  message.success('Экспорт начат')
+  message.success('Экспорт CSV начат')
 }
 
-// Хуки
 onMounted(() => {
-  loadHackathons()
   loadUsers()
 })
 </script>
 
 <style scoped>
+/* Основные стили */
 .users-page {
   padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-:deep(.ant-table-cell) {
-  vertical-align: top;
+/* Хедер */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
 }
 
-:deep(.ant-tag) {
-  margin-right: 4px;
-  margin-bottom: 4px;
+.header-left h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 14px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.export-btn {
+  border-radius: 12px;
+  border: 2px solid #ECE3F2 !important;
+  background: #ECE3F2 !important;
+  color: #291360 !important;
+  font-weight: 500;
+}
+
+.export-btn:hover {
+  background: #D6C6E3 !important;
+  border-color: #D6C6E3 !important;
+}
+
+.assign-btn {
+  border-radius: 12px;
+  background: #68507E !important;
+  border-color: #68507E !important;
+  color: white !important;
+  font-weight: 500;
+}
+
+.assign-btn:hover:not(:disabled) {
+  background: #8156FF !important;
+  border-color: #8156FF !important;
+}
+
+.assign-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Фильтры */
+.filters-section {
+  margin-bottom: 24px;
+}
+
+.filter-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  background: #f8f9fa;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-label {
+  font-weight: 600;
+  color: #291360;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-button {
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-button:hover {
+  border-color: #8156FF;
+  color: #291360;
+}
+
+.filter-button.active {
+  background: #291360;
+  border-color: #291360;
+  color: white;
+}
+
+.reset-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: 2px solid #ffccc7;
+  border-radius: 8px;
+  color: #ff4d4f;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.reset-btn:hover {
+  background: #fff2f0;
+}
+
+/* Панель выбора */
+.selection-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #f0f2f5;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selection-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selected-count {
+  color: #291360;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Сетка пользователей */
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.user-item {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.user-item:hover {
+  transform: translateY(-2px);
+}
+
+.user-item.selected {
+  transform: translateY(-4px);
+}
+
+.user-item.selected .user-card {
+  border-color: #8156FF;
+  box-shadow: 0 8px 24px rgba(129, 86, 255, 0.15);
+  position: relative;
+}
+
+.user-item.selected .user-card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px solid #8156FF;
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.selection-checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  background: white;
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.user-item:hover .selection-checkbox,
+.user-item.selected .selection-checkbox {
+  opacity: 1;
+}
+
+/* Пустое состояние */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border: 2px dashed #e9ecef;
+}
+
+.empty-content {
+  text-align: center;
+  padding: 48px;
+}
+
+.empty-content h3 {
+  margin: 16px 0 8px 0;
+  color: #1a1a1a;
+}
+
+.empty-content p {
+  color: #666;
+}
+
+/* Модалка распределения */
+.assign-modal :deep(.ant-modal-content) {
+  border-radius: 16px;
+}
+
+.assign-modal-content {
+  padding: 8px 0;
+}
+
+.assign-info {
+  margin-bottom: 20px;
+}
+
+.selected-count-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #ECE3F2;
+  color: #291360;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.warning-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 8px;
+  color: #ff4d4f;
+  font-size: 14px;
+}
+
+/* Стили для поиска */
+.custom-search :deep(.ant-input-affix-wrapper) {
+  border-radius: 12px;
+  border: 2px solid #D6C6E3 !important;
+}
+
+.custom-search :deep(.ant-input-affix-wrapper:hover),
+.custom-search :deep(.ant-input-affix-wrapper:focus) {
+  border-color: #8156FF !important;
+  box-shadow: 0 0 0 2px rgba(129, 86, 255, 0.1) !important;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .users-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .header-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-buttons {
+    width: 100%;
+  }
+
+  .filter-buttons-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-options {
+    width: 100%;
+  }
+
+  .filter-button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .reset-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>
